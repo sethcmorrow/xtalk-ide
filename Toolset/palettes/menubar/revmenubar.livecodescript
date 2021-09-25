@@ -3173,9 +3173,10 @@ on revMenubarHelpMenuPick pWhich
          break
       case "Start Center"
       --case "Welcome"
-      --case "About"
+      case "About"
          revIDEOpenPalette tPick
          break
+
       --case "Buy"
       --case "Support"
       --case "User Guide"
@@ -3200,8 +3201,10 @@ on revMenubarHelpMenuPick pWhich
       --case "Relicense"
          revIDEActionRelicense
          break
-      case "Update"
-         revIDECheckForUpdates
+      --case "Update"
+         --revIDECheckForUpdates
+
          break
+
    end switch
 end revMenubarHelpMenuPick

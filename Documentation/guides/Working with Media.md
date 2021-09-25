@@ -377,10 +377,7 @@ do not work reliably.
 
 In addition to these features, OpenXTalk has built-in support for the
 animated GIF format. Animated GIF files can be played back without
-3<sup>rd</sup> party software. See above for more information. Other
-formats supported by plug-ins in web browsers can be played back using
-revBrowser (e.g. Flash). See the topic on *revBrowser* for more
-information.
+3<sup>rd</sup> party software. See above for more information.
 
 ### The Player Object
 

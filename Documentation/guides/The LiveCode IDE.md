@@ -1,11 +1,11 @@
 ---
 group: ide
 ---
-# The LiveCode IDE
+# The OpenXTalk IDE
 
 ## Introduction
 
-This guide details the main components within LiveCodes Integrated
+This guide details the main components within OpenXTalks Integrated
 Development Environment (IDE). The development environment contains all
 the features you need to quickly create a professional application. The
 Application Browser allows you to find your way around your application
@@ -25,12 +25,12 @@ and incorporate files into your stack.
 
 | Menu Item | Action |
 |----------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **New Stack**                          | Opens a cascading menu you can use to choose a stack type to create. When you save the stack, LiveCode asks for a file name and location.                                                                                                                 |
+| **New Stack**                          | Opens a cascading menu you can use to choose a stack type to create. When you save the stack, OpenXTalk asks for a file name and location.                                                                                                                 |
 | **Default Size**	 					 | Creates a stack at the default size (400x400)																																																			 |
 | **Predefined Size**					 | Creates a stack at the predefined size specified																																																		     |
 | **Script only Stack**					 | Creates a stack to be used for script only. You will be prompted for a stack name, and the script editor for the new stack will launch automatically																										 |
 | **New Substack of (main stack name)**  | Creates a new untitled stack in the same file as the active main stack. When you save the substack, it is saved in the main stack’s file. This item is disabled if the active window is not a main stack.                                                 |
-| **Open Stack...**                      | Opens the main stack whose file you select. If you select a HyperCard file, it is automatically converted into a LiveCode main stack.                                                                                                                     |
+| **Open Stack...**                      | Opens the main stack whose file you select. If you select a HyperCard file, it is automatically converted into a OpenXTalk main stack.                                                                                                                     |
 | **Open Recent Stack**                  | Opens a cascading menu containing the names of the 30 main stacks you have most recently closed. Choose a name to open the stack. You can change the number of items displayed using Preferences.                                                         |
 | **Close**                              | Closes the active window. This item is disabled if no window is open.                                                                                                                                                                                     |
 | **Close and Remove from Memory...**    | Closes the current stack and all stacks in the same stack file as the current stack, and removes all stacks in the file from memory. This item is disabled if the active window is not a user stack.                                                      |
@@ -58,17 +58,17 @@ and incorporate files into your stack.
 | **Page Setup...**                      | Opens the Page Setup dialog box for the currently selected printer.                                                                                                                                                                                       |
 | **Print Card...**                      | Prints the current card.                                                                                                                                                                                                                                  |
 | **Print Field...**                     | Prints the currently selected field using the revPrintField command. For more details, see the section on *Printing*.                                                                                                                                     |
-| **Exit**                               | Closes all open stacks and quits LiveCode.                                                                                                                                                                                                                |
+| **Exit**                               | Closes all open stacks and quits OpenXTalk.                                                                                                                                                                                                                |
 
 ### The Edit Menu
 
-The Edit menu contains commands to select, cut, copy, and paste text and 
+The Edit menu contains commands to select, cut, copy, and paste text and
 objects.
 
 | Menu Item | Action |
 |----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Undo**             | Reverses the most recent text change, paint action, movement or deletion of an object.                                                                                                                                                                                                |
-| **Cut, Copy, Paste** | Cuts, copies or pastes the selected text or object. Text and images can be exchanged with other programs in this manner. Objects are only available within the currently running instance of LiveCode.                                                                                |
+| **Cut, Copy, Paste** | Cuts, copies or pastes the selected text or object. Text and images can be exchanged with other programs in this manner. Objects are only available within the currently running instance of OpenXTalk.                                                                                |
 | **Clear**            | Deletes the selected text or objects, without placing it on the clipboard.                                                                                                                                                                                                            |
 | **Duplicate**        | Makes a copy of the selected object or objects. If the object is a card, the copy is added after the current card. If the object is a control, the copy is placed on the current card, below and to the right of the original object. This item is disabled if no object is selected. |
 | **Select All**              | Selects all the text in the current field or all the controls on the current card.                                                                                                                                                        |
@@ -80,7 +80,7 @@ objects.
 
 ### The Tools Menu
 
-The Tools menu contains commands to work with LiveCode's tool palettes 
+The Tools menu contains commands to work with OpenXTalk's tool palettes
 and to use stack development tools.
 
 | Menu Item | Action |
@@ -92,13 +92,13 @@ and to use stack development tools.
 | **Project Browser**        | Opens the Project Browser window, which lists all open stacks, the cards in each stack, and the controls on each card. For more details, see the section on the *Project Browser*.                                                                                  |
 | **Message Box**            | Shows or hides the Message Box. The Message Box is a command line tool that allows you to run scripts or perform automated editing operations. For more details, see the section on *The Message Box*.                                                              |
 | **Extension Manager**      | Shows or hides the Extension Manager. The Extension Manager is a stack which shows what widget and library extensions are currently installed.																													   |
-| **Extension Builder**      | Shows or hides the Extension Builder. The Extension Builder is a stack which aids in the creation of widget and library extensions to LiveCode. For more information on creating extensions using the Extension Builder, please see the *Extending LiveCode* guide. |
+| **Extension Builder**      | Shows or hides the Extension Builder. The Extension Builder is a stack which aids in the creation of widget and library extensions to OpenXTalk. For more information on creating extensions using the Extension Builder, please see the *Extending OpenXTalk* guide. |
 | **Menu Builder**           | Creates or changes the menu bar in the currently active stack. For more details, see the section on the *Working with Menus*.                                                                                                                                       |
 
 ### The Object Menu
 
-The Object menu contains commands to change the properties of the 
-selected object or objects, to create new objects, and to work with 
+The Object menu contains commands to change the properties of the
+selected object or objects, to create new objects, and to work with
 groups.
 
 | Menu Item | Action |
@@ -147,7 +147,7 @@ The Text menu contains commands to change the appearance of text.
 | Menu Item | Action |
 |------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Text Style Options** | Applies or removes the selected style from the selected text or the selected object. These items are disabled if nothing is selected.                                                                                                                                                         |
-| **Link**               | Makes the selected text, or all text in the selected object into a link. Linked text has special properties in LiveCode, for example linked text will receive a linkClicked message when clicked on. For more details, see the section on the *Field* object.                                 |
+| **Link**               | Makes the selected text, or all text in the selected object into a link. Linked text has special properties in OpenXTalk, for example linked text will receive a linkClicked message when clicked on. For more details, see the section on the *Field* object.                                 |
 | **Subscript**          | Moves the selected text below the baseline and makes it smaller.                                                                                                                                                                                                                              |
 | **Superscript**        | Moves the selected text above the baseline and makes it smaller.                                                                                                                                                                                                                              |
 | **Font**               | Opens a cascading menu you can use to change the font face used for the selected text or objects.                                                                                                                                                                                             |
@@ -161,7 +161,7 @@ The Text menu contains commands to change the appearance of text.
 
 ### The Development Menu
 
-The Development menu contains commands for debugging and for using 
+The Development menu contains commands for debugging and for using
 custom tool stacks.
 
 | Menu Item | Action |
@@ -173,20 +173,20 @@ custom tool stacks.
 | **Script Debug Mode**     | If this item is checked, the debugger is enabled: the debugger window appears when a breakpoint is encountered during script execution, and you can enter the debugger when an execution error occurs. If unchecked, the debugger is disabled. For more details, see the section on *Debugging*.                                                               |
 | **Clear All Breakpoints** | Removes all breakpoints that you've used the Script Editor to mark, in all open stacks. Note: This menu item does not affect breakpoints set with the *breakpoint* command.                                                                                                                                                                                      |
 | **Message Watcher**       | Opens the Message Watcher window, used to view and track messages, function calls, getProp calls, and setProp triggers as they are sent to objects.                                                                                                                                                                                                            |
-| **Suppress Errors**       | Prevents display of the error window when LiveCode encounters a script error. |
+| **Suppress Errors**       | Prevents display of the error window when OpenXTalk encounters a script error. |
 | **Suppress Messages**     | Prevents system messages (such as openCard and closeCard) from being sent during normal navigation. This option will also cancel any currently *pending* messages. |
-| **Suspend Development Tools** | Hides LiveCode's menus, palettes, and other parts of the development environment, so that you can preview how your application will look and behave as a standalone, outside the development environment. |
+| **Suspend Development Tools** | Hides OpenXTalk's menus, palettes, and other parts of the development environment, so that you can preview how your application will look and behave as a standalone, outside the development environment. |
 
-> **Caution:** Suppressing errors will cause your scripts to fail 
-silently instead of giving an error message in the event LiveCode 
+> **Caution:** Suppressing errors will cause your scripts to fail
+silently instead of giving an error message in the event OpenXTalk
 encounters an error.
 
-> **Tip:** To also suspend LiveCode libraries, hold down the Shift key 
+> **Tip:** To also suspend OpenXTalk libraries, hold down the Shift key
 while choosing the **Suspend Development Tools** menu item.
 
 ### The View Menu
 
-The View menu contains commands to move around the current stack and to 
+The View menu contains commands to move around the current stack and to
 show or hide development tools.
 
 | Menu Item | Action |
@@ -198,11 +198,11 @@ show or hide development tools.
 | **Go Recent**                     | Goes back to the card you were on before navigating to the current card.                                                                                                                                                                                                                                                                                             |
 | **Toolbar Text**                  | Shows or hides the text labels in the Toolbar at the top of the screen. To hide the Toolbar completely, uncheck both this item and "Toolbar Icons".                                                                                                                                                                                                                  |
 | **Toolbar Icons**                 | Shows or hides the icons in the Toolbar at the top of the screen.                                                                                                                                                                                                                                                                                                    |
-| **Palettes**                      | Shows or hides all open LiveCode palettes.                                                                                                                                                                                                                                                                                                                           |
+| **Palettes**                      | Shows or hides all open OpenXTalk palettes.                                                                                                                                                                                                                                                                                                                           |
 | **Rulers**                        | Shows or hides a ruler at the left and bottom edges of each open stack.                                                                                                                                                                                                                                                                                              |
 | **Grid**                          | If this item is checked, dragging and resizing objects is constrained by a pixel grid. If unchecked, you can drag and resize objects to any location. You can alter the grid spacing in Preferences.                                                                                                                                                                 |
-| **Backdrop**                      | Shows or hides a solid or patterned backdrop behind LiveCode's windows.                                                                                                                                                                                                                                                                                              |
-| **Show IDE Stacks in Lists**      | If this item is checked, elements of the LiveCode development environment appear in lists: for example, development environment stacks appear in the Application Browser, and LiveCode custom properties appear in the Custom Properties pane of the property inspector. If unchecked, elements of the LiveCode development environment do not appear in such lists. |
+| **Backdrop**                      | Shows or hides a solid or patterned backdrop behind OpenXTalk's windows.                                                                                                                                                                                                                                                                                              |
+| **Show IDE Stacks in Lists**      | If this item is checked, elements of the OpenXTalk development environment appear in lists: for example, development environment stacks appear in the Application Browser, and OpenXTalk custom properties appear in the Custom Properties pane of the property inspector. If unchecked, elements of the OpenXTalk development environment do not appear in such lists. |
 | **Show Invisible Objects**        | If this item is checked, objects whose visible property is set to false are shown. If unchecked, objects whose visible property is set to false remain hidden.                                                                                                                                                                                                       |
 
 ### The Window menu
@@ -215,32 +215,32 @@ The Window menu contains the names of open stack windows.
 
 ### The Help Menu
 
-The Help menu contains commands which allow you to find out more about 
-using LiveCode, license your copy of LiveCode, get technical support via 
-email, and check the LiveCode site for software updates. For more 
+The Help menu contains commands which allow you to find out more about
+using OpenXTalk, license your copy of OpenXTalk, get technical support via
+email, and check the OpenXTalk site for software updates. For more
 information, see the section on *Using the Documentation*.
 
 | Menu Item | Action |
 |-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Dictionary (API)**    | Opens the main LiveCode documentation window, where you can get information about all aspects of developing in LiveCode.                                                                                                                                       |
+| **Dictionary (API)**    | Opens the main OpenXTalk documentation window, where you can get information about all aspects of developing in OpenXTalk.                                                                                                                                       |
 | **Start Center**        | Opens the Start Center.                                                      																																										           |
 | **Sample Stacks**       | Launches revOnline in an external browser                                                     																																								   |
 | **Sample Scripts**      | Opens the Resource Center, which contains many sample scripts, including tutorials on text processing and using databases.                                                      																			   |
 | **Beginner's Guide**    | Opens the beginner's guide in an external browser                                                                    	                                                      	    																		   |
-| **All Guides**          | Opens the main LiveCode documentation window, which contains all of the user guides	                                                         																												   |
-| **Tutorials**           | Launches the online LiveCode lessons portal in an external browser                                                      																																	   |
+| **All Guides**          | Opens the main OpenXTalk documentation window, which contains all of the user guides	                                                         																												   |
+| **Tutorials**           | Launches the online OpenXTalk lessons portal in an external browser                                                      																																	   |
 | **User Guide**          | Opens the old user guide in an external PDF viewer                                                   																			                                                         					   |
-| **Forums**              | Navigates to the LiveCode discussion forums in an external browser                                                  																			                                                         	   |
-| **Technical Questions** | Navigates to questions tagged LiveCode on StackOverflow in an external browser                                                 																			                                                       |
-| **Discussion List**     | Navigates to the LiveCode discussion list in an external browser                                                  																			                                                         		   |
-| **Newsletters**         | Navigates to LiveCode news letters and blogs in an external browser                                                  																			                                                         	   |
+| **Forums**              | Navigates to the OpenXTalk discussion forums in an external browser                                                  																			                                                         	   |
+| **Technical Questions** | Navigates to questions tagged OpenXTalk on StackOverflow in an external browser                                                 																			                                                       |
+| **Discussion List**     | Navigates to the OpenXTalk discussion list in an external browser                                                  																			                                                         		   |
+| **Newsletters**         | Navigates to OpenXTalk news letters and blogs in an external browser                                                  																			                                                         	   |
 | **Release Notes**       | Opens the release notes in an external PDF viewer                                                   																			                                                         					   |
 | **License Agreement**   | Opens the license agreement in an external text editor                                                   																			                                                         				   |
 | **User Guide**          | Opens the old user guide as a PDF document                                                   																			                                                         							   |
-| **Support…**            | Loads the support section of the LiveCode web site in your web browser.                                                                                                                                                                                        |
-| **Buy a license…**      | Loads the LiveCode store in your web browser.                                                                                                                                                                                                                  |
-| **Check for Updates…**  | Checks online to see if an update to LiveCode is available.                                                                                                                                                                                                    |
-| **Re-license LiveCode** | Deletes your LiveCode licensing information and restarts LiveCode allowing you to enter a new license key.                                                                                                                                                     |
+| **Support…**            | Loads the support section of the OpenXTalk web site in your web browser.                                                                                                                                                                                        |
+| **Buy a license…**      | Loads the OpenXTalk store in your web browser.                                                                                                                                                                                                                  |
+| **Check for Updates…**  | Checks online to see if an update to OpenXTalk is available.                                                                                                                                                                                                    |
+| **Re-license OpenXTalk** | Deletes your OpenXTalk licensing information and restarts OpenXTalk allowing you to enter a new license key.                                                                                                                                                     |
 
 ## The Property Inspector
 
@@ -261,11 +261,11 @@ Figure 9 - Properties Inspector
 | **Action menu** 			| Use the action menu to select another object, edit the script of the current object or send a message to current object.                                                                                                                                                                                                                                                                                                                           												 |
 | **Settings menu**  		| Use the settings menu to configure the settings of the property inspector.																																																															 |
 | **Property text** 		| Edit the contents of a property by typing into the text area within the Inspector. Press return to set the property and leave the current option selected. Press tab to set the property and move on to the next editable text property.                                                                                                                                                                                                                                                           |
-| **Property description** 	| This text describes the object property. By default this text is an English-like description of the property. However you can change this to contain the name of the LiveCode property in the Preferences or the settings menu. You may prefer to view the LiveCode property names if you are writing scripts that set object properties.                                                                                                                                                          |
+| **Property description** 	| This text describes the object property. By default this text is an English-like description of the property. However you can change this to contain the name of the OpenXTalk property in the Preferences or the settings menu. You may prefer to view the OpenXTalk property names if you are writing scripts that set object properties.                                                                                                                                                          |
 
 > **Important:** For documentation on what each individual object
 > property does, hover the mouse over the object until you see the
-> script property equivalent. Then look that term up in the LiveCode
+> script property equivalent. Then look that term up in the OpenXTalk
 > Dictionary.
 
 ### Property Inspector settings
@@ -274,12 +274,12 @@ Figure 9 - Properties Inspector
 |-------|-------|
 | **Tab display style**  | Controls whether to use icons or text for the pane selections. |
 | **Header/Footer size**  | Controls how large the pane selector icons are. 																																																			 |
-| **Property labels**  | Controls whether to use the LiveCode script tokens for property labels or not. |
+| **Property labels**  | Controls whether to use the OpenXTalk script tokens for property labels or not. |
 
 ## The Script Editor
 
-The Script Editor within LiveCode has been designed specifically for
-LiveCode coding. It includes features to help make code more
+The Script Editor within OpenXTalk has been designed specifically for
+OpenXTalk coding. It includes features to help make code more
 understandable. These include code indentation and color coded syntax
 highlighting, as well as other integrated tools such as a Debugger and
 syntax Dictionary. You can access the Script Editor for an object by
@@ -293,7 +293,7 @@ the Script Editor's components are outlined below.
 ### Main Script Area
 
 Display and edit scripts in this area. For more details on how to write
-a script, see the section on Coding in LiveCode. The Script Editor will
+a script, see the section on Coding in OpenXTalk. The Script Editor will
 colorize and format scripts automatically. When typing press tab to
 manually format the script. Press Enter (on the numeric keypad) to
 compile the script. Press Enter again to close the Script Editor.
@@ -335,13 +335,13 @@ The handler list displays all the functions, commands and handlers which
 are part of the current script. When a handler name is clicked, the
 script will jump to that handler.
 
-The currently displayed list of handlers can be filtered by typing in 
+The currently displayed list of handlers can be filtered by typing in
 the filter box below it.
 
 ### Documentation Pane
 
-The Script Editor also has a built-in syntax dictionary. When this tab 
-is active a summary of the dictionary entry for the keyword which you 
+The Script Editor also has a built-in syntax dictionary. When this tab
+is active a summary of the dictionary entry for the keyword which you
 are currently typing will be displayed. The full dictionary entry can be
 viewed by clicking Launch Documentation. Alternatively you can choose to
 view the entire entry in place by toggling the Full Document check box
@@ -351,7 +351,7 @@ at the bottom of the documentation pane.
 
 ### Search Results Pane
 
-When you perform a 'find all' operation the results will be displayed 
+When you perform a 'find all' operation the results will be displayed
 under this tab.
 
 ![](images/image42.png)
@@ -498,7 +498,7 @@ Editor, with or without saving changes to the script.
 | **Save**    | Saves the current stack.                                         |
 | **Close**   | Closes the current script.                                       |
 | **Print**   | Prints the current script.                                       |
-| **Quit**    | Exits LiveCode. Will prompt you to save your work if applicable. |
+| **Quit**    | Exits OpenXTalk. Will prompt you to save your work if applicable. |
 
 ### The Edit Menu
 
@@ -513,7 +513,7 @@ text, the Edit menu contains the following, script-specific commands:
 | **Quick Find**        | Opens the “find” field within the Script Editor.                                                                                                                                                                                                                                                                         |
 | **Find and Replace…** | Brings up the Script Editor's find and replace dialog.                                                                                                                                                                                                                                                                   |
 | **Go**                | Brings up a dialog box which lets you enter a line number to jump to in the script.                                                                                                                                                                                                                                      |
-| **Variable Checking** | Variable checking causes LiveCode to perform a stricter check of your scripts. Using any variable without declaring it first, or using a literal string without encloning it in quotes causes a compile error. This behavior can be useful in tracking down certain subtle problems such as misspelling a variable name. |
+| **Variable Checking** | Variable checking causes OpenXTalk to perform a stricter check of your scripts. Using any variable without declaring it first, or using a literal string without encloning it in quotes causes a compile error. This behavior can be useful in tracking down certain subtle problems such as misspelling a variable name. |
 
 ### The Debug Menu
 
@@ -567,7 +567,7 @@ The Window menu contains the names of open script editor windows.
 
 ### Autocomplete
 
-> **Note:** Autocomplete is available in LiveCode CommunityPlus and above
+> **Note:** Autocomplete is available in OpenXTalk CommunityPlus and above
 
 #### Using Autocomplete
 
@@ -588,7 +588,7 @@ will be edited together. Clicking within a placeholder will select it.
 
 #### Autocomplete Pro
 
-> **Note:** Autocomplete Pro is available in LiveCode Indy and above
+> **Note:** Autocomplete Pro is available in OpenXTalk Indy and above
 
 Autocomplete Pro provides the following additional features:
 
@@ -646,8 +646,8 @@ Where:
 - type - is used to filter the completions presented for the placeholder
 one of:
 
-  - statement - any LiveCode command
-  - expression - any LiveCode expression
+  - statement - any OpenXTalk command
+  - expression - any OpenXTalk expression
   - identifier - a variable or handler name
 
 Additionally, it is possible to include multiple placeholders with the
@@ -670,7 +670,7 @@ scripts, test parts of your program, provides a convenient output window
 for debugging and can be used for editing and setting properties.
 
 > **Tip:** The Message Box is one of the more useful components in
-> LiveCode when you are starting out and wanting to try out simple
+> OpenXTalk when you are starting out and wanting to try out simple
 > scripts. You will find you can try out many of the script examples in
 > this User's Guide or in the getting started materials on our website
 > simply by copy-pasting them into the Message Box.
@@ -697,7 +697,7 @@ Figure 10 – The Message Box in Single Line Mode
 
 | &nbsp;| &nbsp;|
 |--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Command area**   | Type valid LiveCode code into this area. In *Single Line* mode, separate multiple lines with **;** (semi-colon) and press *Return* to execute. In *Multiple Line* mode, press return to separate lines, and press *Enter* to execute.<br><br>For example, in Single Line mode, to move all controls on the current card 10 pixels to the left you would run:                                                                                                                                                                                                                                                                                                                                        `repeat with i = 1 to the number of controls`;` move control i relative –10,0`;`end repeat`<br><br>In Multiple Line Mode:`repeat with i = 1 to the number of controls`<br><br>`move control i relative –10,0`                                                                                                                                                                                                                                                                                                                                                                                                                        <br><br>`end repeat`<br><br>Type **control-m** to focus the command area and start typing, whenever the Message Box does not have the focus. Press **control-u** when typing to clear the command area.<br><br>In *Single Line* mode press the **Up Arrow** key to cycle backwards through the history of previously entered and executed scripts. Press the **Down Arrow** key to cycle forwards. In *Multiple Line* mode, press **alt-up arrow** or **alt-down arrow** to cycle forwards or backwards, respectively. Press **control-u** to clear the current command area.<br><br>Typing the name of a global variable or property on its own will result in the line being auto-completed to include **put** in front of the global variable or property, thus the contents of that global will be placed into the results area. For example typing:<br><br>`time`<br><br>Will be auto completed to:                                                                                                                                                                                                                                                                                                                                                                                                                             <br><br>`put the time`<br><br>The current time will be placed in the results area.                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Command area**   | Type valid OpenXTalk code into this area. In *Single Line* mode, separate multiple lines with **;** (semi-colon) and press *Return* to execute. In *Multiple Line* mode, press return to separate lines, and press *Enter* to execute.<br><br>For example, in Single Line mode, to move all controls on the current card 10 pixels to the left you would run:                                                                                                                                                                                                                                                                                                                                        `repeat with i = 1 to the number of controls`;` move control i relative –10,0`;`end repeat`<br><br>In Multiple Line Mode:`repeat with i = 1 to the number of controls`<br><br>`move control i relative –10,0`                                                                                                                                                                                                                                                                                                                                                                                                                        <br><br>`end repeat`<br><br>Type **control-m** to focus the command area and start typing, whenever the Message Box does not have the focus. Press **control-u** when typing to clear the command area.<br><br>In *Single Line* mode press the **Up Arrow** key to cycle backwards through the history of previously entered and executed scripts. Press the **Down Arrow** key to cycle forwards. In *Multiple Line* mode, press **alt-up arrow** or **alt-down arrow** to cycle forwards or backwards, respectively. Press **control-u** to clear the current command area.<br><br>Typing the name of a global variable or property on its own will result in the line being auto-completed to include **put** in front of the global variable or property, thus the contents of that global will be placed into the results area. For example typing:<br><br>`time`<br><br>Will be auto completed to:                                                                                                                                                                                                                                                                                                                                                                                                                             <br><br>`put the time`<br><br>The current time will be placed in the results area.                                                                                                                                                                                                                                                                                                                                                                                                   |
 | **Results area**   | Displays:<br><br>The *result* function after running code in the *command area*.                                                                                                                                                                                                                                                                                                                                                                                        <br><br>Any script that uses the **put** command without a destination container.<br><br>Any script compile error created as a result of attempting to run code placed in the command area.<br><br>Any execution error created as a result of attempting to run code placed in the command area.<br><br>The **msg** special global will be updated whenever anything is placed in the results area, either by script or by directly editing the content of the results area. You can set or retrieve the content of this variable in any script. For example, try running the following in the command area:<br><br>`put the clipBoardData; replace return with return & return in msg`<br><br>The result placed into the results area will contain the current contents of the clipboard, with every return character replaced with a second return character.                                                                                                                                                                                                                                                                                       |
 | **Stack selector** | Select a stack to work on. Prior to executing any script the *defaultStack* will be set to the stack displayed in this menu. By default the Message Box will choose the front most editable stack. The menu is updated whenever you change the front most stack or click on the Message Box. You can use this menu to choose an alternative open stack. For example, running the following script in the command area of the single line message box:<br><br>`put the number of controls`<br><br>Would place the number of controls in the current card of the *stack displayed in the menu*, into the results area.                                                                                                                                                                                                                                                                                                                                    |
 | **Lock icon**      | This option prevents the Stack selector from updating automatically when you change stacks. Use this option if you want to run a number of commands on a specific stack regardless of which stack is currently in front.                                                                                                                                                                                                                              |
@@ -712,7 +712,7 @@ Figure 10 – The Message Box in Single Line Mode
 | **Tab display style**  | Controls whether to use icons or text for the mode selections. |
 | **Header/Footer size**  | Controls how large the mode selector icons and footer action icons are. 																																																			 |
 | **Auto update pending messages**  | Toggles whether the pending messages as displayed in message box in pending messages mode are updated automatically or manually. 																																																			 |
-| **Select intelligence object**  | The Message Box will attempt to auto complete the typing of a name of an object property, resulting in putting the contents of that property into the results area. You can choose whether the auto-complete should attempt to use the currently selected object, or the object directly underneath the mouse. For example, with an object selected, entering:<br><br>`width`<br><br>Will result in:<br><br>`put the width of the selObj`<br><br>The width of the currently selected object will be placed in the results area. The `selObj`will be substituted with the `mouseControl`if you choose this option. In the example above, that would result in the width of the object underneath the mouse being placed in the results area instead. For more details on the `selObj`function or the `mouseControl`functions, see the LiveCode Dictionary.                                                   |
+| **Select intelligence object**  | The Message Box will attempt to auto complete the typing of a name of an object property, resulting in putting the contents of that property into the results area. You can choose whether the auto-complete should attempt to use the currently selected object, or the object directly underneath the mouse. For example, with an object selected, entering:<br><br>`width`<br><br>Will result in:<br><br>`put the width of the selObj`<br><br>The width of the currently selected object will be placed in the results area. The `selObj`will be substituted with the `mouseControl`if you choose this option. In the example above, that would result in the width of the object underneath the mouse being placed in the results area instead. For more details on the `selObj`function or the `mouseControl`functions, see the OpenXTalk Dictionary.                                                   |
 
 ### Single and Multiple Line Modes
 
@@ -736,9 +736,9 @@ variables. Environment variables are shown first, followed by other
 variables. Scroll to find a variable from the list on the left and
 select it to view or edit it. Typing a portion of the variable name into
 the Filter field at the top will filter the list of variables. Changes
-to global properties take effect immediately. The Show LiveCode UI
+to global properties take effect immediately. The Show OpenXTalk UI
 Variables is an advanced option, discussed in the section on Editing the
-LiveCode User Interface. For more details on Global Variables, see the
+OpenXTalk User Interface. For more details on Global Variables, see the
 section on *Global Variables*.
 
 ### Pending Messages
@@ -756,8 +756,8 @@ messages. The Auto Update mode refreshes the list continuously. Note
 that the Auto Update takes place every 200 milliseconds. If your
 messages fire more quickly they may not be displayed. For more details
 on Pending Messages, see the section on *Timer Based Messaging*. The
-Show LiveCode UI Messages is an advanced option, discussed in the
-section on *Editing the LiveCode User Interface*.
+Show OpenXTalk UI Messages is an advanced option, discussed in the
+section on *Editing the OpenXTalk User Interface*.
 
 ### Front Scripts & Back Scripts
 
@@ -766,9 +766,9 @@ front or back of the message path. This is the same as the global
 properties the **frontScripts** and the **backScripts**. Select a front
 or back script to remove it or edit its script. For more details on
 library scripts, see the section on *Extending the Message Path*. The
-Show LiveCode UI Scripts is an advanced option that displays all of the
-libraries used by the LiveCode IDE. This is discussed in the section on
-*Editing the LiveCode User Interface*.
+Show OpenXTalk UI Scripts is an advanced option that displays all of the
+libraries used by the OpenXTalk IDE. This is discussed in the section on
+*Editing the OpenXTalk User Interface*.
 
 ### Stacks In Use
 
@@ -787,8 +787,8 @@ Figure 11 – The Main Toolbar
 For details on what each toolbar icon does, see the section on the Menu
 Bar (above).
 
-To hide and show the text or icons on the tool bar, use 
-**View -\> Toolbar Text** and **View -\> Toolbar Icons**. To hide the 
+To hide and show the text or icons on the tool bar, use
+**View -\> Toolbar Text** and **View -\> Toolbar Icons**. To hide the
 Toolbar completely, uncheck both options.
 
 ## Find and Replace
@@ -812,15 +812,15 @@ Figure 12 – Find and Replace
 | **Find button**    | Performs the search |
 | **Case Sensitive** | Specifies that the search should be case sensitive (e.g. "a" and "A" are treated as different characters) |
 | **Regular Expression**                   | Specifies that the Find Field contains a regular expression instead of plain text. A regular expression allows you to describe a pattern of text to match. For more details on using regular expressions, see the section on *Using Regular Expressions* below. |
-| **Obey dontSearch properties**           | Specifies that fields, cards or groups with their dontSearch property set to true should be excluded from the search. For more details on the *dontSearch* property, see the LiveCode Dictionary.                                                               |
-| **Search marked or unmarked cards only** | Specified that the search should be restricted to either marked or unmarked cards. For more details on marked and unmarked cards, see *mark* in the LiveCode Dictionary.                                                                                        |
+| **Obey dontSearch properties**           | Specifies that fields, cards or groups with their dontSearch property set to true should be excluded from the search. For more details on the *dontSearch* property, see the OpenXTalk Dictionary.                                                               |
+| **Search marked or unmarked cards only** | Specified that the search should be restricted to either marked or unmarked cards. For more details on marked and unmarked cards, see *mark* in the OpenXTalk Dictionary.                                                                                        |
 | **Search in…**                           | Allows you to specific which object properties to search:                                                                                                                                                                                                       |
 | **Name**                                 | Searches an object’s *short name* property.                                                                                                                                                                                                                     |
 | **Script**                               | Searches an object’s *script* property.                                                                                                                                                                                                                         |
 | **Custom**                               | Searches and objects custom properties and custom property sets. For more details on Custom properties, see the section on *Custom Properties*.                                                                                                                 |
 | **Field Text**                           | Searches within field text.                                                                                                                                                                                                                                     |
 | **Button Text**                          | Searches button text. This includes text in menus. For more information on buttons and menus, see the section on *Control Types*.                                                                                                                               |
-| **All Other**                            | Searches all other commonly used object properties. For more details on exactly what is included, see the *properties* entry in the LiveCode Dictionary.                                                                                                        |
+| **All Other**                            | Searches all other commonly used object properties. For more details on exactly what is included, see the *properties* entry in the OpenXTalk Dictionary.                                                                                                        |
 | **Results column header**                | Allows you to sort search results by clicking. Drag between the column headers to change column widths.                                                                                                                                                         |
 | **Search Results Area**                  | Displays a list of objects that match the search parameters.                                                                                                                                                                                                    |
 | **Remove from List**                     | Removes the currently selected search result in the Search Results area from the list. Once removed, the object will no longer be included in any replace operation.                                                                                            |

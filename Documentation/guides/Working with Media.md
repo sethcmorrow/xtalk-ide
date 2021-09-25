@@ -5,14 +5,14 @@ group: intermediate
 
 ## Introduction
 
-One of the most popular uses for LiveCode is to create full blown
+One of the most popular uses for OpenXTalk is to create full blown
 multimedia applications. Even if you aren't creating a traditional
 multimedia application, many applications require a compelling user
 interface.
 
-This chapter details LiveCode's media support. We discuss the image
+This chapter details OpenXTalk's media support. We discuss the image
 features and capabilities: how to import and export images in a variety
-of formats, how to manipulate images within LiveCode, working with
+of formats, how to manipulate images within OpenXTalk, working with
 masks, the clipboard and screen capture, right through to animated GIFs.
 We detail the vector graphic features and explain how to manipulate
 vector graphics by script. We then cover the video and audio feature
@@ -21,7 +21,7 @@ given an overview of the support for visual transition effects.
 
 ## Bitmap Images
 
-LiveCode supports a wide variety of image formats, including the popular
+OpenXTalk supports a wide variety of image formats, including the popular
 PNG and JPEG formats. PNG images are space efficient and have full
 support for alpha channels. JPEG images are good for displaying photos.
 For more details see the table below.
@@ -41,17 +41,17 @@ For more details see the table below.
 | **PICT**   | No         | No                          | uncompressed                                                                                     |
 
 As you can see from the table above, a number of the supported image
-formats can also be exported by LiveCode.
+formats can also be exported by OpenXTalk.
 
-You can modify images using LiveCode's paint tools, or manipulate the
+You can modify images using OpenXTalk's paint tools, or manipulate the
 binary data by script or using an external.
 
-You can create images from any of LiveCode's native objects, including
+You can create images from any of OpenXTalk's native objects, including
 buttons, fields and graphics. These can then been exported in a number
 of formats. You can copy images from the clipboard or export images to
 the clipboard.
 
-LiveCode can capture a portion of the screen, or the entire screen.
+OpenXTalk can capture a portion of the screen, or the entire screen.
 
 ### Importing Images
 
@@ -75,7 +75,7 @@ selected. Referenced images do not expand the size of your stack and are
 only loaded from disk into memory when you navigate to the current card
 or otherwise display them on screen. Referenced images are ideal where
 you want to update the image in an image editor and see the changes in
-LiveCode without having to re-import.
+OpenXTalk without having to re-import.
 
 You may wish to consider creating a folder next to your stack file to
 contain image files then using the Inspector to modify the file path to
@@ -159,18 +159,18 @@ size then use the drag command to paint.
 The following example creates an image, chooses the brush tool, selects
 a small circular brush shape, selects a red color, then draws a line:
 
-	-- set the size of the image 
-	set the rect of the templateImage to 100,100,400,400 
-	create image 
-	choose brush tool 
-	set the brush to 8 
-	set the brushColor to red -- could use an RGB triplet here 
-	set the dragSpeed to 20 -- very slow 
+	-- set the size of the image
+	set the rect of the templateImage to 100,100,400,400
+	create image
+	choose brush tool
+	set the brush to 8
+	set the brushColor to red -- could use an RGB triplet here
+	set the dragSpeed to 20 -- very slow
 	drag from 120,120 to 300,300
 
 For more information, see the entries for the **templateImage**,
 **tool**, **brush**, **brushColor**, **brushPattern**, **dragSpeed**,
-**penColor** and **penPattern** in the *LiveCode Dictionary*.
+**penColor** and **penPattern** in the *OpenXTalk Dictionary*.
 
 You may reduce the size of an image using the **crop** command.
 
@@ -185,11 +185,11 @@ rect.
 To manipulate the binary data of an image, use the image's **imageData**
 property. This property returns the color and transparency value of each
 pixel in the image in a consistent format regardless of the format the
-image is saved in. The **imageData** is stored as binary, with each 
-pixel represented by 4 bytes. To convert it to and from RGB values use 
+image is saved in. The **imageData** is stored as binary, with each
+pixel represented by 4 bytes. To convert it to and from RGB values use
 the **byteToNum** and **numToByte** functions.
 
-For example, the numeric value of the red, green and blue channels 
+For example, the numeric value of the red, green and blue channels
 respectively for the tenth pixel are given by the expressions:
 
 	charToNum(char (4 * 9 + 2 of the imageData of image <image>)
@@ -199,8 +199,8 @@ respectively for the tenth pixel are given by the expressions:
 To manipulate the binary data of an image using an external, use the
 **imagePixMapID** property.
 
-When you set the **imageData** of an image the image will be 
-recompressed into the format specified by the **paintCompression** 
+When you set the **imageData** of an image the image will be
+recompressed into the format specified by the **paintCompression**
 global property.
 
 ### Rendering an Image from Objects
@@ -213,7 +213,7 @@ coordinates (as described above) specify a stack or object.
 > import an image from does not need to be displayed on screen. You can
 > create a layout off screen in an invisible stack then render it into
 > an image.
- 
+
 To import a snapshot of a region of a stack:
 
 	import snapshot from 100,100,200,200 of stack "Layout"
@@ -227,7 +227,7 @@ The import snapshot command creates a new image in the current
 **paintCompression** format.
 
 To save this snapshot directly to a file instead of creating an image,
-use the export snapshot command: 
+use the export snapshot command:
 
 	export snapshot from the selectedObject to file "snap.jpg" as JPEG
 
@@ -237,7 +237,7 @@ To export an image in the current format that it is stored in, put it
 into a binary file using the URL commands. The following example prompts
 the user to select a file then export the image into it:
 
-	ask file "Select a file:" 
+	ask file "Select a file:"
 	put image "picture" into URL ("binfile:" & it)
 
 To export an image in a different format, use the **export** command.
@@ -245,7 +245,7 @@ To export an image in a different format, use the **export** command.
 	export image "picture" to file "picture.png" as PNG
 
 You may also export an image to a variable. See the **export** command
-in the *LiveCode Dictionary* for more information.
+in the *OpenXTalk Dictionary* for more information.
 
 ### Copying and Pasting Images
 
@@ -264,8 +264,8 @@ To copy an image to the clipboard, use the **copy** command.
 To paste an image from the clipboard, use the **paste** command.
 
 To transfer the binary data of an image to and from the clipboard get
-and set the **clipBoardData["image"]** property. See the 
-**clipBoardData** entry in the *LiveCode Dictionary* for more 
+and set the **clipBoardData["image"]** property. See the
+**clipBoardData** entry in the *OpenXTalk Dictionary* for more
 information.
 
 ### Working with Animated GIFs
@@ -284,7 +284,7 @@ To change the current frame set the **currentFrame** property.
 
 ## Working with Vector Graphics
 
-In addition to bitmap graphics, LiveCode also supports vector graphics.
+In addition to bitmap graphics, OpenXTalk also supports vector graphics.
 You can create vector graphics using the graphics tools, or by script.
 You can manipulate them interactively in the IDE or by script. You can
 relayer them, export a description of them or convert them to bitmap
@@ -294,7 +294,7 @@ format.
 > includes a set of functions for programming interactive graphic
 > animations. See the Related Software section of our web site for more
 > information.
-> 
+>
 
 ### The Vector Graphic Tools
 
@@ -330,7 +330,7 @@ move a graphic 100 pixels to the right asynchronously:
 
 	move graphic 1 relative 100,0 without waiting
 
-For more information, see the **move** command in the LiveCode
+For more information, see the **move** command in the OpenXTalk
 Dictionary.
 
 To program a more complex animation effect, calculate the changes to the
@@ -339,21 +339,21 @@ The following example scales a graphic named "rectangle" down by 100
 pixels over the course of 1 second.
 
 	local sCount
-	on mouseUp 
-		put 0 into sCount 
-		scaleGraphic 
+	on mouseUp
+		put 0 into sCount
+		scaleGraphic
 	end mouseUp
-	
-	on scaleGraphic 
-		add 1 to sCount 
+
+	on scaleGraphic
+		add 1 to sCount
 		if sCount > 100 then exit scaleGraphic
-		get the rect of graphic "rectangle" 
-		add 1 to item 1 of it 
-		add 1 to item 2 of it 
-		subtract 1 from item 3 of it 
-		subtract 1 from item 4 of it 
-		set the rect of graphic "rectangle" to it 
-		send "scaleGraphic" to me in 10 milliseconds 
+		get the rect of graphic "rectangle"
+		add 1 to item 1 of it
+		add 1 to item 2 of it
+		subtract 1 from item 3 of it
+		subtract 1 from item 4 of it
+		set the rect of graphic "rectangle" to it
+		send "scaleGraphic" to me in 10 milliseconds
 	end scaleGraphic
 
 See the section on *Timer based messaging* for more information on using
@@ -361,8 +361,8 @@ timers.
 
 ## Working with Video
 
-LiveCode supports playback of video with the player object. On Windows
-*DirectShow* is supported. Media format support in the new Windows 
+OpenXTalk supports playback of video with the player object. On Windows
+*DirectShow* is supported. Media format support in the new Windows
 player control depends on which codecs are installed. A list of the
 [file formats and compression types available as standard](https://msdn.microsoft.com/en-us/library/ms787745(VS.85).aspx)
 on Windows is available in the MSDN documentation
@@ -370,12 +370,12 @@ on Windows is available in the MSDN documentation
 On Mac OS X systems, the player object uses the AV Foundation framework.
 
 On Linux Systems, the player object can play back video using *mplayer*.
-There are some functionality limitations: the **alwaysBuffer**, 
-**startTime**, **endTime**, **showController** and **playSelection** 
-properties have no effect, and **play step forward**/**play step back** 
+There are some functionality limitations: the **alwaysBuffer**,
+**startTime**, **endTime**, **showController** and **playSelection**
+properties have no effect, and **play step forward**/**play step back**
 do not work reliably.
 
-In addition to these features, LiveCode has built-in support for the
+In addition to these features, OpenXTalk has built-in support for the
 animated GIF format. Animated GIF files can be played back without
 3<sup>rd</sup> party software. See above for more information. Other
 formats supported by plug-ins in web browsers can be played back using
@@ -395,7 +395,7 @@ to the URL address of the stream.
 
 To play a player, use the **start** and **stop** commands.
 
-	start player 1 
+	start player 1
 	stop player 1
 
 The following table describes commonly used player properties:
@@ -422,13 +422,13 @@ The following properties can be used to control a QTVR movie: **pan**,
 **tilt**, **zoom**, **currentNode**, **nodeChanged**, **hotspots**, and
 **hotSpotClicked**.
 
-For more information on any of these terms, see the *LiveCode
+For more information on any of these terms, see the *OpenXTalk
 Dictionary*.
 
 ## Working with Sounds
 
 In addition to playing back sound in a wide variety of formats using the
-player object, LiveCode has in-built support for playback of WAV, AIFF
+player object, OpenXTalk has in-built support for playback of WAV, AIFF
 and AU format audio clips.
 
 > **Note:** We recommend you use the player object for playing audio as
@@ -455,12 +455,12 @@ To stop playing
 
 To set the volume:
 
-	-- sets the volume to 50% 
+	-- sets the volume to 50%
 	set the playLoudness of audioclip 1 to 50
 
 ## Working with Visual Transition Effects
 
-LiveCode supports visual transition effects when changing card or hiding
+OpenXTalk supports visual transition effects when changing card or hiding
 and showing objects. There are three types of effect support: built-in
 effects which work on all platforms, QuickTime effects which work on
 older Mac OS X systems and Core Image effects which work
@@ -475,38 +475,35 @@ To make changes to objects on the screen with a visual effect (e.g.
 hide, show or move them), first lock the screen, then make the changes,
 then unlock the screen:
 
-	lock screen 
-	hide image 1 
-	show image 3 
+	lock screen
+	hide image 1
+	show image 3
 	unlock screen with visual effect "wipe right"
 
 To choose a QuickTime effect using the effect chooser dialog use:
 
-	answer effect 
-	-- store the visual effect as a custom property 
+	answer effect
+	-- store the visual effect as a custom property
 	set the cEffect of this stack to it
 
 Then:
 
-	visual effect (the cEffect of this stack) 
+	visual effect (the cEffect of this stack)
 	go next card
 
 For more information on visual effects, see the **visual effect**
-command in the *LiveCode Dictionary*. To try out the different visual
-effects available in an interactive format see the [Multimedia
-Workshop](http://www.runrev.com/developers/exploring-revolution/
-multimedia/)
+command in the *OpenXTalk Dictionary*.
 
 ## Creating Custom Skins
 
-In addition to its support for system native controls, LiveCode allows
+In addition to its support for system native controls, OpenXTalk allows
 you the ability to create an entirely custom look, or skin, for your
 application. All of the built-in elements can be replaced with themed
-graphics allowing you to create rich multimedia. For example, LiveCode
+graphics allowing you to create rich multimedia. For example, OpenXTalk
 buttons support "icons" of unlimited size which can be used to replace
 the native appearance of a button entirely. Windows can be irregularly
 shaped and even contain holes and alpha mask (variable) transparency.
-All of LiveCode's objects support a variety of transfer modes or inks.
+All of OpenXTalk's objects support a variety of transfer modes or inks.
 Stacks can take over the entire screen or be displayed with a backdrop.
 
 ### Custom Themed Buttons
@@ -519,7 +516,7 @@ any image you have imported to use as an icon for the button. To set the
 mouse down state, set the *hilite* icon. To set the roll over state set
 the *hover* icon.
 
-A button "icon" may be an image of any size in LiveCode, allowing a
+A button "icon" may be an image of any size in OpenXTalk, allowing a
 completely custom look.
 
 > **Tip:** To use the same set of images as icons throughout your stack
@@ -529,9 +526,9 @@ completely custom look.
 > anywhere in your application. If you want to change theme, you only
 > need to replace that image with another image and give it the same ID.
 
-Any object in LiveCode can behave like a button. For example, if you
+Any object in OpenXTalk can behave like a button. For example, if you
 want to create a graphic that responds when a user clicks on it, create
-the graphic and add a **mouseUp** handler to it, in the same way you 
+the graphic and add a **mouseUp** handler to it, in the same way you
 would with a button.
 
 ### Irregular Windows
@@ -550,16 +547,16 @@ Blend modes determine how an object's colors combine with the colors of
 the pixels underneath the object to determine how the object's color is
 displayed. To set the blend mode of an object, use the *Blending* pane
 in the *Inspector* or set the object's **ink** property. All objects in
-LiveCode support blend modes, with the exception of stacks.
+OpenXTalk support blend modes, with the exception of stacks.
 
 	set the ink of image "picture" to "blendBurn"
 
-For more information, see the **ink** entry in the LiveCode Dictionary.
+For more information, see the **ink** entry in the OpenXTalk Dictionary.
 
 To set the degree of transparency, set the object's **`blendLevel`**
-property. All LiveCode objects (including stacks) support `blendLevel`:
+property. All OpenXTalk objects (including stacks) support `blendLevel`:
 
-	set the blendLevel of button 1 to 50 
+	set the blendLevel of button 1 to 50
 	-- sets a button to 50% transparent
 
 ### Full screen mode

@@ -24,7 +24,7 @@ on extensionInitialize
    if the target is not me then
       pass extensionInitialize
    end if
-   
+
    insert the script of me into back
    revIDEInitialiseIDELibrary
 end extensionInitialize
@@ -33,7 +33,7 @@ on extensionFinalize
    if the target is not me then
       pass extensionFinalize
    end if
-    
+
    remove the script of me from back
    revIDEFinaliseIDELibrary
 end extensionFinalize
@@ -46,12 +46,12 @@ end extensionFinalize
 local sToolDefinition
 private on __toolDefinitionsRead
    put empty into sToolDefinition
-   
+
    # Set to folder to the path where the object definition files for classic controls are stored
    local tToolDefinitionPath
    put revIDESpecialFolderPath("Tool Definitions") into tToolDefinitionPath
    revIDEPushDefaultFolder tToolDefinitionPath
-   
+
    # Read in each file and build an array
    local tDefinitionData, tToolSection
    repeat for each line tFile in the files
@@ -59,7 +59,7 @@ private on __toolDefinitionsRead
       set the itemdel to "."
       put item 1 of tFile into tToolSection
       put URL ("file:" & tToolDefinitionPath & slash & tFile) into tDefinitionData
-      
+
       local tToolID, tCount
       put 1 into tCount
       set the itemdel to ","
@@ -67,7 +67,7 @@ private on __toolDefinitionsRead
          put item 1 of tToolDescription into tToolID
          put item 2 of tToolDescription into sToolDefinition[tToolSection][tCount]["label"]
          put item 3 of tToolDescription into sToolDefinition[tToolSection][tCount]["icon"]
-         
+
          local tCount2, tPropertyName, tPropertyValue
          put 1 into tCount2
          repeat for each item tProperty in item 4 of tToolDescription
@@ -77,11 +77,11 @@ private on __toolDefinitionsRead
             put tPropertyValue into sToolDefinition[tToolSection][tCount]["properties"][tCount2][tPropertyName]
             add 1 to tCount2
          end repeat
-         
+
          add 1 to tCount
       end repeat
    end repeat
-   
+
    revIDEPopDefaultFolder
 end __toolDefinitionsRead
 
@@ -105,7 +105,7 @@ private on __resolvePopupData @xInfo, pData
 end __resolvePopupData
 
 private function __propertyDataMapping
-   local tMapping 
+   local tMapping
    put "name:1,label:2,section:3,editor:4,user_visible:5,read_only:6,group:7,default:8,options:9,subsection:10,min:11,max:12,step:13" into tMapping
    split tMapping by comma and ":"
    return tMapping
@@ -115,14 +115,14 @@ end __propertyDataMapping
 private function __propertyDataProcessLine pLine
    local tLineDataA, tMappingA
    put __propertyDataMapping() into tMappingA
-   
+
    repeat for each key tDataName in tMappingA
       local tItemNumber, tPreProcessed
       put tMappingA[tDataName] into tItemNumber
       set the itemdelimiter to tab
       put item tItemNumber of pLine into tPreProcessed
       set the itemdelimiter to comma
-      
+
       switch tDataName
          case "name"
             # Properties can use custom getters and setters.
@@ -145,7 +145,7 @@ private function __propertyDataProcessLine pLine
             break
          case "options"
             # Get any popup info
-            set the itemdelimiter to ":" 
+            set the itemdelimiter to ":"
             if tPreProcessed begins with "popup:" then
                put true into tLineDataA["popup"]
             else
@@ -165,31 +165,31 @@ end __propertyDataProcessLine
 private function __propertyDataFromInfoFile pFileName
    local tPropertyInfo
    put URL ("file:" & pFileName) into tPropertyInfo
-   
+
    local tDataStart, tDataA, tPropName
    put false into tDataStart
-   
+
    local tCountsA, tGroupCountsA, tPopupsToResolve
    repeat for each line tLine in tPropertyInfo
       if tLine begins with "-----" then
          put true into tDataStart
          next repeat
       end if
-      
+
       if not tDataStart then
          next repeat
       end if
-      
+
       if token 1 of tLine is empty then
          next repeat
       end if
-      
+
       local tLineDataA
       put __propertyDataProcessLine(tLine) into tLineDataA
-      
+
       put tLineDataA["name"] into tPropName
       put tLineDataA into tDataA[tPropName]
-      
+
       local tGroupName
       put tLineDataA["group"] into tGroupName
       if tGroupName is empty then
@@ -199,7 +199,7 @@ private function __propertyDataFromInfoFile pFileName
          put tPropName into tGroupName
       end if
       put tGroupName into tDataA[tPropName]["group"]
-      
+
       local tSection
       put tLineDataA["section"] into tSection
       if tGroupCountsA[tSection][tGroupName] is empty then
@@ -207,22 +207,22 @@ private function __propertyDataFromInfoFile pFileName
          put tCountsA[tSection]["count"] into tGroupCountsA[tSection][tGroupName]
       end if
       put tGroupCountsA[tSection][tGroupName] into tDataA[tPropName]["group_order"]
-      
+
       add 1 to tCountsA[tSection][tGroupName]["count"]
       put tCountsA[tSection][tGroupName]["count"] into tDataA[tPropName]["order"]
-      
+
       if tLineDataA["popup"] is true then
          put true into tPopupsToResolve[tPropName]
       end if
    end repeat
-   
-   repeat for each key tKey in tPopupsToResolve 
+
+   repeat for each key tKey in tPopupsToResolve
       local tPropData
       put tDataA[tKey] into tPropData
       __resolvePopupData tPropData, tDataA
       put tPropData into tDataA[tKey]
    end repeat
-   
+
    return tDataA
 end __propertyDataFromInfoFile
 
@@ -231,25 +231,25 @@ private function __organisePropertyInfo pInfoA, pPopup
    repeat for each key tKey in pInfoA
       local tSection
       put pInfoA[tKey]["section"] into tSection
-      
+
       local tGroupLabel
       put pInfoA[tKey]["group"] into tGroupLabel
-      
+
       local tGroupData
       put empty into tGroupData
-      
+
       # The groups are ordered by their appearance in the spec file
       put pInfoA[tKey]["group_order"] into tGroupData["order"]
       put pInfoA[tKey]["subsection"] into tGroupData["subsection"]
-      
+
       # Carry over the generic prop information into the object prop info array
       put pInfoA[tKey] into tGroupData["proplist"][tKey]
-      
+
       # Organise the popup data if there is any
       local tPopupData
       if pInfoA[tKey]["popup"] is not empty then
-         put __organisePropertyInfo(pInfoA[tKey]["popup"], true) into tGroupData["proplist"][tKey]["popup"] 
-      end if 
+         put __organisePropertyInfo(pInfoA[tKey]["popup"], true) into tGroupData["proplist"][tKey]["popup"]
+      end if
       if pPopup then
          union tOrganisedA["grouplist"][tGroupLabel] with tGroupData recursively
       else
@@ -265,7 +265,7 @@ local sClassicObjectProperties, sClassicObjectPropertiesInfo, sClassicProperties
 private function __classicObjectProperties pObjID
    local tType
    put ideObjectTypeFromObject(pObjID) into tType
-   
+
    return __classicObjectPropertiesFromType(tType)
 end __classicObjectProperties
 
@@ -289,27 +289,27 @@ end __classicObjectPropertiesFromType
 
 private on  __setPropertyDataOfObjectFromFile pObjectType, pFile, pPropInfoA
    local tObjectData
-   
+
    # Get the data from the file
    put URL ("file:" & pFile) into tObjectData
-   
+
    # Parse the file into a structure array
    local tObjectPropertiesA, tCountsA, tGroupCountsA
    set the itemdel to tab
-   
+
    local tDataStart, tDataA
    put false into tDataStart
    repeat for each line tLine in tObjectData
       if tLine is empty then next repeat
-      
+
       if tLine begins with "-----" then
          put true into tDataStart
          next repeat
       end if
-      
+
       local tLineDataA
       put __propertyDataProcessLine(tLine) into tLineDataA
-      
+
       if tLineDataA["name"] is "type" then
          put tLineDataA["label"] into sClassicObjectProperties[pObjectType]["type"]
          next repeat
@@ -319,20 +319,20 @@ private on  __setPropertyDataOfObjectFromFile pObjectType, pFile, pPropInfoA
          put tLineDataA["label"] into sClassicObjectProperties[pObjectType]["title"]
          next repeat
       end if
-      
+
       if tDataStart is false then
          next repeat
       end if
-      
+
       local tPropertyName
       put tLineDataA["name"] into tPropertyName
-      
+
       repeat for each key tOverride in tLineDataA
          if tLineDataA[tOverride] is not empty then
             put tLineDataA[tOverride] into pPropInfoA[tPropertyName][tOverride]
          end if
       end repeat
-      
+
       # Default can override to empty if it is the string "empty"
       if tLineDataA["default"] is not empty then
          if tLineDataA["default"] is "empty" then
@@ -340,7 +340,7 @@ private on  __setPropertyDataOfObjectFromFile pObjectType, pFile, pPropInfoA
          end if
          put tLineDataA["default"] into pPropInfoA[tPropertyName]["default"]
       end if
-      
+
       local tGroupLabel
       put pPropInfoA[tPropertyName]["group"] into tGroupLabel
       if tGroupLabel is empty then
@@ -350,17 +350,17 @@ private on  __setPropertyDataOfObjectFromFile pObjectType, pFile, pPropInfoA
          put tPropertyName into tGroupLabel
       end if
       put tGroupLabel into pPropInfoA[tPropertyName]["group"]
-      
+
       local tSection
       put pPropInfoA[tPropertyName]["section"] into tSection
-      
+
       # The groups are ordered by their appearance in the spec file
       if tGroupCountsA[tSection][tGroupLabel] is empty then
          add 1 to tCountsA[tSection]["count"]
          put tCountsA[tSection]["count"] into tGroupCountsA[tSection][tGroupLabel]
       end if
       put tGroupCountsA[tSection][tGroupLabel] into pPropInfoA[tPropertyName]["group_order"]
-      
+
       add 1 to tCountsA[tSection][tGroupLabel]["count"]
       put tCountsA[tSection][tGroupLabel]["count"] into pPropInfoA[tPropertyName]["order"]
       -- Put 'control properties' last
@@ -368,11 +368,11 @@ private on  __setPropertyDataOfObjectFromFile pObjectType, pFile, pPropInfoA
       if pObjectType is "com.livecode.interface.Control" then
          add 1000 to pPropInfoA[tPropertyName]["group_order"]
       end if
-      
+
       put pPropInfoA[tPropertyName] into sClassicObjectProperties[pObjectType]["properties"][tPropertyName]
       put pPropInfoA[tPropertyName] into tObjectPropertiesA[tPropertyName]
    end repeat
-   
+
    put __organisePropertyInfo(tObjectPropertiesA) into sClassicObjectPropertiesInfo[pObjectType]
 end __setPropertyDataOfObjectFromFile
 
@@ -382,12 +382,12 @@ end __propertyInfoFilename
 
 private function __classicToolsOrderFilename
    return "classicToolsOrder.tsv"
-end __classicToolsOrderFilename 
+end __classicToolsOrderFilename
 
 private on __orderClassicTools
    local tToolsOrderFile
    put revIDESpecialFolderPath("Object Property Definitions") & slash & __classicToolsOrderFilename() into tToolsOrderFile
-   
+
    local tOrder
    repeat for each line tTool in url ("file:" & tToolsOrderFile)
       add 1 to tOrder
@@ -400,35 +400,35 @@ private on __objectPropertiesRead
    put empty into sClassicObjectProperties
    put empty into sClassicObjectPropertiesInfo
    put empty into sClassicPropertiesInfo
-   
+
    # Set to folder to the path where the object definition files for classic controls are stored
    local tObjectDefinitionsPath
    put revIDESpecialFolderPath("Object Property Definitions") into tObjectDefinitionsPath
-   
+
    local tPropertiesInfo
    put __propertyDataFromInfoFile(tObjectDefinitionsPath & slash & __propertyInfoFilename()) into tPropertiesInfo
    revIDEPushDefaultFolder tObjectDefinitionsPath
-   
+
    # Read in each file and build an array
    local tObjectType
-   
+
    repeat for each line tFile in the files
       if not (tFile begins with "com.livecode.interface") then next repeat
       if char 1 of tFile is "." then next repeat
-      
+
       put tFile into tObjectType
       # Get the name of the object
       set the itemdel to "."
       if the last item of tObjectType is "tsv" then delete the last item of tObjectType
       if tObjectType is empty then next repeat
-      
+
       __setPropertyDataOfObjectFromFile tObjectType, tObjectDefinitionsPath & slash & tFile, tPropertiesInfo
    end repeat
-   
+
    __orderClassicTools
-   
+
    put tPropertiesInfo into sClassicPropertiesInfo
-   
+
    revIDEPopDefaultFolder
 end __objectPropertiesRead
 
@@ -439,7 +439,7 @@ private function __orderPropSubArray pSectionA, pIsGroupList
    else
       put "proplist" into tSubKey
    end if
-   
+
    local tPropKeys, tWidgetPropKeys
    repeat for each key tKey in pSectionA[tSubKey]
       if pSectionA[tSubKey][tKey]["widget_prop"] then
@@ -456,10 +456,10 @@ private function __orderPropSubArray pSectionA, pIsGroupList
          end if
       end if
    end repeat
-   
+
    sort lines of tPropKeys ascending numeric by pSectionA[tSubKey][each]["order"]
    sort lines of tWidgetPropKeys ascending numeric by pSectionA[tSubKey][each]["order"]
-   
+
    local tKeys, tCount
    put 1 into tCount
    put tPropKeys into tKeys
@@ -489,13 +489,13 @@ private function __orderPropSubArray pSectionA, pIsGroupList
       end if
       add 1 to tCount
    end repeat
-   
+
    return tOrderedA
 end __orderPropSubArray
 
 private function __orderPropArray pPropsA, pSections
    local tOrderedPropsA,x
-   
+
    local tCount
    put 1 into tCount
    repeat for each item tSection in pSections
@@ -512,13 +512,13 @@ private function __objectPropertiesInfo pObjectType, pOrganiseInSections, pOptio
    if not (pObjectType begins with "com.livecode.interface.classic") then
       # This is not a classic object, so fetch the 'extension' properties.
       put revIDEExtensionPropertiesInfo(pObjectType, pOrganiseInSections) into tPropertiesArray
-      # Currently this must be a widget, so get the universal widget property info 
+      # Currently this must be a widget, so get the universal widget property info
       # that has been parsed from the definitions file
       put "com.livecode.interface.classic.widget" into tClassicObjectType
    else
       put pObjectType into tClassicObjectType
    end if
-   
+
    if pOrganiseInSections then
       # Add the object properties for this object type
       union tPropertiesArray with sClassicObjectPropertiesInfo[tClassicObjectType] recursively
@@ -537,10 +537,10 @@ end __objectPropertiesInfo
 private function __objectPropertiesShared pObjectTypeList, pOrganiseInSections, pOptionalSection
    local tPropertiesArray,tPropertiesArray2, tPropertiesArray3,x, tSectionProps, tAllControls
    put pObjectTypeList is not empty into tAllControls
-   
+
    repeat for each line tObjectType in pObjectTypeList
       if not __objectTypeIsControl(tObjectType) then
-         put false into tAllControls  
+         put false into tAllControls
       end if
       if tPropertiesArray is empty then
          put __objectPropertiesInfo(tObjectType, pOrganiseInSections, pOptionalSection) into tPropertiesArray
@@ -548,11 +548,11 @@ private function __objectPropertiesShared pObjectTypeList, pOrganiseInSections, 
          intersect tPropertiesArray with __objectPropertiesInfo(tObjectType, pOrganiseInSections, pOptionalSection) recursively
       end if
    end repeat
-   
+
    if tAllControls then
       union tPropertiesArray with sClassicObjectPropertiesInfo["com.livecode.interface.Control"] recursively
    end if
-   
+
    if pOptionalSection is not empty then
       return tPropertiesArray[pOptionalSection]
    else
@@ -610,7 +610,7 @@ function idePropertyNames pObjectType
    if sClassicPropertiesInfo is empty or sClassicObjectPropertiesInfo is empty then
       __objectPropertiesRead
    end if
-   
+
    local tProps
    if pObjectType is empty then
       put the keys of sClassicPropertiesInfo into tProps
@@ -633,7 +633,7 @@ function ideObjectTypes
    if sClassicObjectPropertiesInfo is empty then
       __objectPropertiesRead
    end if
-   
+
    local tTypes
    put the keys of sClassicObjectPropertiesInfo into tTypes
    sort tTypes
@@ -741,7 +741,7 @@ function ideObjectTypeFromObject pObjectID
          break
       case "button"
          if the menumode of pObjectID is "combobox" then return "com.livecode.interface.classic.ComboBox"
-         
+
          switch the style of pObjectID
             case "radiobutton"
                return "com.livecode.interface.classic.RadioButton"
@@ -840,47 +840,47 @@ private function __dumpArrayRecurse pArray, pLevel, @pCounter, @pList
    put the keys of pArray into tOrderedKeys
    sort lines of tOrderedKeys numeric
    repeat for each line tKey in tOrderedKeys
-      
+
       add 1 to pCounter
-      
+
       repeat for pLevel
          put tab after line pCounter of pList
       end repeat
       put (tKey && "= ") after line pCounter of pList
-      
+
       if (the keys of pArray[tKey]) is empty then
          put line 1 of pArray[tKey] after line pCounter of pList
       else
          put __dumpArrayRecurse(pArray[tKey], (pLevel + 1), pCounter, pList) into pList
       end if
-      
+
    end repeat
-   
+
    return pList
 end __dumpArrayRecurse
 
 function __revIDEError pMessage
    global gRevDevelopment
-   
+
    local tErrorContext, tErrorText, tLockedMessages
    put line -2 of the executioncontexts into tErrorContext
-   
+
    # Unlock messages to ensure the errors get through to the message box
    put the lockmessages into  tLockedMessages
    unlock messages
-   
+
    put "ERROR:" && pMessage & return & "line:" && item 3 of tErrorContext & return & "handler:" && item 2 of tErrorContext & return & "script object:" && item 1 of tErrorContext into tErrorText
-   
+
    # If in IDE development mode output the error to the Message Box
    if gRevDevelopment is true then
       put return & tErrorText after msg
    end if
-   
+
    # if the messages were locked, lock them again
    if tLockedMessages is true then
       lock messages
    end if
-   
+
    return tErrorText
 end __revIDEError
 
@@ -895,7 +895,7 @@ function __readStructureOfStackForDataView @pData, pParent, pLevel, pIndex
    # 1) Get desired properties for the current stack
    dispatch function "__readPropertiesOfControlForDataView" to the target with sStackPropertiesToRead, pData,pParent, pLevel, pIndex
    put the result into tStackIndex
-   
+
    --   # 2) Process any cards
    --   local tChildCardIDs
    --   put empty into tChildCardIDs
@@ -904,22 +904,22 @@ function __readStructureOfStackForDataView @pData, pParent, pLevel, pIndex
    --      dispatch function "__readPropertiesOfControlForDataView" to card x of the target with sCardPropertiesToRead, pData, tStackIndex, pLevel + 1
    --      local tCardIndex
    --      put the result into tCardIndex
-   
+
    --      if tChildCardIDs is empty then
    --         put tCardIndex into tChildCardIDs
    --      else
    --         put comma & tCardIndex after tChildCardIDs
    --      end if
-   
+
    --      # b) Process the card container for all its controls
-   
+
    --      dispatch function "__readStructureOfContainerForDataView" to card x of the target with pData, tCardIndex, pLevel + 1
    --      put the result into pData[tCardIndex]["children"]
    --      put false into pData[tCardIndex]["expanded"]
    --      put "container" into pData[tCardIndex]["style"]
    --      put "card" into pData[tCardIndex]["type"]
    --   end repeat
-   
+
    --   # 3) Process any subsctacks
    --   repeat for each line tSubstack in the substacks of the target
    --      if tChildCardIDs is empty then
@@ -929,9 +929,9 @@ function __readStructureOfStackForDataView @pData, pParent, pLevel, pIndex
    --      end if
    --      dispatch function "__readStructureOfStackForDataView" to stack tSubstack with pData,tStackIndex, pLevel + 1
    --   end repeat
-   
+
    --   put tChildCardIDs into pData[tStackIndex]["children"]
-   
+
    --put the number of cards of the target into pData[tStackIndex]["childCount"]
    put the number of cards of the target & the number of lines in the substacks of the target into pData[tStackIndex]["childCount"]
    put false into pData[tStackIndex]["expanded"]
@@ -989,7 +989,7 @@ end __readStructureOfStackForDataView
 function __readStructureOfContainerForDataView @pData, pParentIndex, pLevel
    # 1) Repeat for each control in the container
    local tChildIDs, tChildCount
-   
+
    //repeat with x = 1 to the number of controls of the target
    --repeat for each line tControlId in the childcontrolIDs of the target
    put the number of lines in the childcontrolIDs of the target into tChildCount
@@ -1000,7 +1000,7 @@ function __readStructureOfContainerForDataView @pData, pParentIndex, pLevel
       else
          put line (tChildCount -x) + 1 of the childcontrolIDs of the target into tControlId
       end if
-      
+
       # read the properties of the control
       local tIndex
       dispatch function "__readPropertiesOfControlForDataView" to control ID tControlID of the target with sControlPropertiesToRead, pData, pParentIndex, pLevel + 1
@@ -1010,14 +1010,14 @@ function __readStructureOfContainerForDataView @pData, pParentIndex, pLevel
       else
          put comma & tIndex after tChildIDs
       end if
-      
+
       #  if the control is a group
       if the name of control ID tControlID of the target begins with "group" then
          local tIndexStart
          put the number of elements of pData into tIndexStart
-         
+
          dispatch function "__readStructureOfContainerForDataView" to control ID tControlID of the target with pData, tIndex, pLevel + 1
-         
+
          put the result into pData[tIndex]["children"]
          --add the number of elements of pData - tIndexStart to x
          put false into pData[tIndex]["expanded"]
@@ -1035,7 +1035,7 @@ end __readStructureOfContainerForDataView
 function __readPropertiesOfControlForDataView pList, @pData, pParentIndex, pLevel,pIndex
    local tIndex
    put pIndex + the number of elements of pData + 1 into tIndex
-   
+
    put pParentIndex into pData[tIndex]["parent"]
    --put empty into pList
    repeat for each line tProp in pList
@@ -1077,16 +1077,16 @@ end __readPropertiesOfControlForDataView
 function __readStructureOfStack @pData
    # 1) Get desired properties for the current stack
    dispatch function "__readPropertiesOfControl" to the target with sStackPropertiesToRead, pData
-   
+
    # 2) Process any cards
    repeat with x = 1 to the number of cards of the target
       # a) Get basic properties for the card
       dispatch function "__readPropertiesOfControl" to card x of the target with sCardPropertiesToRead, pData["cards"][x]
-      
+
       # b) Process the card container for all its controls
       dispatch function "__readStructureOfContainer" to card x of the target with pData["cards"][x]["controls"]
    end repeat
-   
+
    # 3) Process any subsctacks
    repeat for each line tSubstack in the substacks of the target
       dispatch function "__readStructureOfStack" to stack tSubstack with pData["substacks"][x]
@@ -1095,25 +1095,25 @@ end __readStructureOfStack
 
 function __readStructureOfContainer @pData
    local tControlsProcessedInContainer
-   
+
    # 1) Repeat for each control in the container
    repeat with x = 1 to the number of controls of the target
       # read the properties of the control
       dispatch function "__readPropertiesOfControl" to control x of the target with sControlPropertiesToRead, pData[x]
-      
+
       --local tName
       --put the name of control x of the target into tName
-      
+
       #  if the control is a group
       if the name of control x of the target begins with "group" then
-         
+
          dispatch function "__readStructureOfContainer" to control x of the target with pData[x]["controls"]
          put the result into tControlsProcessedInContainer
          add the number of elements of pData[x]["controls"] to tControlsProcessedInContainer
          add tControlsProcessedInContainer to x
       end if
    end repeat
-   
+
    return tControlsProcessedInContainer
 end __readStructureOfContainer
 
@@ -1124,7 +1124,7 @@ on __readGroupedPropertiesOfControl pGroupsA, @pDataA
          put tGroup into tPropMappingA[tProp]["group"]
       end repeat
    end repeat
-   
+
    local tDataA
    set the itemdelimiter to ";"
    repeat for each key tKey in tPropMappingA
@@ -1136,7 +1136,7 @@ on __readGroupedPropertiesOfControl pGroupsA, @pDataA
          __fetchPropertyOfControl tKey, tDataA
       end if
    end repeat
-   
+
    local tValue, tEffective
    set the itemdelimiter to ":"
    repeat for each key tKey in tDataA
@@ -1171,19 +1171,19 @@ end __fetchPropertyCustomGetter
 private on __fetchPropertyOfControl pProp, @xData
    local tError
    put empty into tError
-   
+
    local tObjID
    put the long id of the target into tObjID
-   
+
    local tProperties
    put __classicObjectProperties(tObjID) into tProperties
-   
+
    if tProperties["properties"][pProp]["getter"] is not empty then
       __fetchPropertyCustomGetter tProperties["properties"][pProp]["getter"], \
             tObjId, pProp, xData
       exit __fetchPropertyOfControl
    end if
-   
+
    try
       switch pProp
          case "short name"
@@ -1211,7 +1211,7 @@ private on __fetchPropertyOfControl pProp, @xData
             if the the cIDEProperties["cCustomControl"] of the Target is "true" then
                put "true" into xData["custom control"]
             else if the dgProp["control type"] of the target is "Data Grid" then
-               put "true" into xData["custom control"]            
+               put "true" into xData["custom control"]
             else
                put "false" into xData["custom control"]
             end if
@@ -1223,7 +1223,7 @@ private on __fetchPropertyOfControl pProp, @xData
       put the short name of the target into xData["name"]
    catch tError
    end try
-   
+
    # AL-2015-07-15: Remove 'do' construction, as evaluating the target as a string
    #  causes incorrect object references when obejcts have the same name
    if xData[pProp] is empty then
@@ -1332,22 +1332,22 @@ on revIDEInitialiseIDELibrary
    repeat for each line tFont in tFonts
       start using font file (revIDESpecialFolderPath("fonts") & slash & tFont)
    end repeat
-   
+
    # Setup the default lists of properties to read from objects when reading the structure of a stack
    put "name" & return & "visible" & return & "cantselect" & return & "layer" & return & "long id" & return & "label" & return & "behavior" & return & "scriptlines" & return & "scriptstatus" & return & "short name" & return & "owner" & return & "behavior" & return & "behavior scriptlines" & return & "type" & return & "custom control" into sControlPropertiesToRead
    put "scriptlines" & return & "scriptstatus" & return & "short name" & return & "owner" & return & "behavior" & return & "behavior scriptlines" & return & "long id" into sCardPropertiesToRead
    put "scriptlines" & return & "scriptstatus" & return & "short name" & return & "behavior" & return & "behavior scriptlines" & return & "long id" into sStackPropertiesToRead
-   
+
    ## Load Extensions
    revInternal__LoadLibrary "revideextensionlibrary"
-   
+
    ## Regenerate dictionary data
    revInternal__LoadLibrary "revDatabaseLibrary"
    revIDERegenerateBuiltDictionaryData
-   
+
    ## Initialise property library
    revIDEPropertyLibraryInitialise
-   
+
    ideSubscribe "ideExtensionsChanged"
    ideSubscribe "ideDesktopChanged"
 end revIDEInitialiseIDELibrary
@@ -1378,7 +1378,7 @@ Subscribes the calling object to receive the specified IDE message
 
 pMessage (string): The message to subscribe to.
 
-pObjectList (optional string): 
+pObjectList (optional string):
 A list of objects, one per line, determining which calling objects the message should be restricted to.
 
 Example:
@@ -1405,11 +1405,11 @@ on ideSubscribe pMessage, pObjectList
    if not revIDEMessageIsValid(pMessage) then
       return __revIDEError("The message ("&pMessage&") that you are trying to subscribe to is not valid. Please check the documentation for which messages you can subscribe to.")
    end if
-   
+
    # Get the log ID of the calling object
    local tCallingObjectID
    put the long ID of the target into tCallingObjectID
-   
+
    # Special case propertyChanged where we have to register for listeners for obejcts
    if pMessage is "idePropertyChanged" then
       repeat for each line tObject in pObjectList
@@ -1423,11 +1423,11 @@ on ideSubscribe pMessage, pObjectList
    else
       __ideAddSubscription pMessage, tCallingObjectID
    end if
-   
+
    if the result is not empty then
       return the result
    end if
-   
+
    return empty
 end ideSubscribe
 
@@ -1438,7 +1438,7 @@ end revIDESubscribe
 /**
 Unsubscribes the calling object from the given message
 
-pMessage (enum): The message to unsubscribe from. 
+pMessage (enum): The message to unsubscribe from.
 pObject (String): The long ID of the object you wish to unsubscribe from the message. This is an optional parameter, if not specified, the calling object will be used.
 pObjectList (optional string): A list of objects, one per line.
 **/
@@ -1447,7 +1447,7 @@ on revIDEUnsubscribe pMessage, pObject, pObjectList
    if pObject is empty then
       put the long ID of the target into pObject
    end if
-   
+
    # Special case propertyChanged where we have to register for listeners for obejcts
    if pMessage is "idePropertyChanged" then
       repeat for each line tObject in pObjectList
@@ -1479,7 +1479,7 @@ on revIDEUnsubscribeAll pObject
    if pObject is empty then
       put the long ID of the target into pObject
    end if
-   
+
    # Loop through messages and unsubscribe
    repeat for each key tMessage in sSubscriptions
       revIDEUnsubscribe tMessage, pObject
@@ -1495,7 +1495,7 @@ function revIDESubscriptions
    # Get the log ID of the calling object
    local tCallingObjectID
    put the long ID of the target into tCallingObjectID
-   
+
    # Build a list of all the message names the calling object is subscribed to
    local tSubscriptions
    repeat for each key tMessage in sSubscriptions
@@ -1504,7 +1504,7 @@ function revIDESubscriptions
       end if
    end repeat
    delete the last char of tSubscriptions
-   
+
    return tSubscriptions
 end revIDESubscriptions
 
@@ -1520,7 +1520,7 @@ function revIDESubscribedObjects pMessage
    if not revIDEMessageIsValid(pMessage) then
       return __revIDEError("The message ("&pMessage&") you are enquiring about is not valid. Please check the documentation for which messages you can subscribe to.")
    end if
-   
+
    return sSubscriptions[pMessage]["callback targets"]
 end revIDESubscribedObjects
 
@@ -1559,7 +1559,7 @@ A list, one per line, of the long ids of the objects triggering the message.
 This is used for example with the <idePropertyChanged> message to
 convey which objects had properties changed.
 
-pParamsArray (array): 
+pParamsArray (array):
 A numerically keyed aray (starting at 1) of the parameters to pass along with the message.
 
 Description:
@@ -1570,19 +1570,19 @@ References: ideSubscribe (command), idePropertyChanged (message)
 **/
 on ideMessageSendWithParameters pMessage, pTriggeringObjects, pParamsArray
    lock screen
-   
+
    # Validate input
    if not revIDEMessageIsValid(pMessage) then
       return __revIDEError("The message ("&pMessage&") you have requested to be sent is not a valid IDE message. Please check the documentation for which messages you can subscribe to.")
    end if
-   
+
    # If in run mode don't send any updates
    //if the tool is not "pointer tool" then exit ideMessageSendWithParameters
-   
+
    local tSubscriptionList, tTargetsA, tSubscription
    # Add all universal subscribers to the subscription list
    put sSubscriptions[pMessage]["callback targets"] into tSubscriptionList
-   
+
    # Add any per-object subscriptions
    repeat for each line tLine in pTriggeringObjects
       put pMessage & "," & tLine into tSubscription
@@ -1594,21 +1594,21 @@ on ideMessageSendWithParameters pMessage, pTriggeringObjects, pParamsArray
          end if
       end repeat
    end repeat
-   
+
    # Send the message!
    set the itemdel to ":"
    local tMessage
    put item 1 of pMessage into tMessage
-   
+
    # Construct a dispatch command with all the desired parameters
    local tDoString, tParams, tErrors
    put "dispatch tMessage to tObjectID" into tDoString
-   
+
    # If this is a parameterised message, add the parameter as the first arg
    if the number of items of pMessage > 1 then
       put " with item 2 of pMessage" into tParams
    end if
-   
+
    repeat with tParam = 1 to the number of elements in pParamsArray
       if tParams is empty then
          put " with pParamsArray[" & tParam & "]" into tParams
@@ -1617,14 +1617,14 @@ on ideMessageSendWithParameters pMessage, pTriggeringObjects, pParamsArray
       end if
    end repeat
    put tParams after tDoString
-   
+
    repeat for each line tObjectID in tSubscriptionList
       # if the callback object doesn't exist, don't send message
       if not exists(tObjectID) then
          revIDEUnsubscribeAll tObjectID
          next repeat
       end if
-      
+
       # Ensure any error doesn't prevent subsequent subscribers from receiving messages
       try
          do tDoString
@@ -1637,11 +1637,11 @@ on ideMessageSendWithParameters pMessage, pTriggeringObjects, pParamsArray
       end try
    end repeat
    unlock screen
-   
+
    if tErrors is not empty then
       return __revIDEError("Error when sending message" && pMessage & ":" & return & tErrors)
    end if
-   
+
    return empty
 end ideMessageSendWithParameters
 
@@ -1682,7 +1682,7 @@ graphic objects.
 **/
 function revIDEGraphics
    if sClassicObjectProperties is empty then __objectPropertiesRead
-   
+
    local tReturnData
    repeat for each key tIndex in sClassicObjectProperties
       if sClassicObjectProperties[tIndex]["type"] is "graphic" then
@@ -1702,7 +1702,7 @@ by each of those graphic creation tools.
 **/
 function revIDEGraphicTools
    if sClassicObjectProperties is empty then __objectPropertiesRead
-   
+
    local tReturnData
    repeat for each key tIndex in sClassicObjectProperties
       if sClassicObjectProperties[tIndex]["type"] is "graphic tool" then
@@ -1718,17 +1718,17 @@ function revIDEGraphicToolControllers
    put "com.livecode.tool.FillColor" into tName
    put "Set graphic fill color" into tTooltip
    updateOptionArray tName, "graphic fill color tool", tTooltip, tCount, tReturnData
-   
+
    add 1 to tCount
    put "com.livecode.tool.LineColor" into tName
    put "Set graphic line color" into tTooltip
    updateOptionArray tName, "graphic line color tool", tTooltip, tCount, tReturnData
-   
+
    add 1 to tCount
    put "com.livecode.tool.LineSize" into tName
    put "Set graphic line size" into tTooltip
    updateOptionArray tName, "graphic line size tool", tTooltip, tCount, tReturnData
-   
+
    return tReturnData
 end revIDEGraphicToolControllers
 
@@ -1756,88 +1756,88 @@ those paint tools.
 **/
 function revIDEPaintTools
    local tDataA
-   
+
    local tTooltip, tName, tCount
-   
+
    add 1 to tCount
    put "com.livecode.tool.Pencil" into tName
    put "Pencil Tool - Draw a freehand line on an image" into tTooltip
    updatePaintToolArray tName, "pencil tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.Brush" into tName
    put "Brush Tool - Draw freehand brush strokes on an image" into tTooltip
    updatePaintToolArray tName, "brush tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.Bucket" into tName
    put "Bucket Tool - Fill on outline in an image" into tTooltip
    updatePaintToolArray tName, "bucket tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.SprayCan" into tName
    put "Spray Can Tool - Draw airbrush strokes on an image" into tTooltip
    updatePaintToolArray tName, "spray tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.Polygon" into tName
    put "Polygon Tool - Click to set each point on the polygon, double click to close the polygon" into tTooltip
    updateOptionArray tName, "paint polygon shape tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.Curve" into tName
    put "Curve Tool - Draws a curved line on an image" into tTooltip
    updatePaintToolArray tName, "curve tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.Select" into tName
    put "Select Tool - Select a rectangle area of an image" into tTooltip
    updatePaintToolArray tName, "select tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.Eraser" into tName
    put "Eraser Tool - Erase an area in an image" into tTooltip
    updatePaintToolArray tName, "eraser tool", tTooltip, tCount, tDataA
-   
+
    return tDataA
 end revIDEPaintTools
 
 function revIDEPaintToolControllers
    local tDataA
-   
+
    local tTooltip, tName, tCount
    add 1 to tCount
    put "com.livecode.tool.FillColor" into tName
    put "Set paint fill color" into tTooltip
    updateOptionArray tName, "paint fill color tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.LineColor" into tName
    put "Set paint line color" into tTooltip
    updateOptionArray tName, "paint line color tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.LineSize" into tName
    put "Set paint line size" into tTooltip
    updateOptionArray tName, "paint line size tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.BrushPattern" into tName
    put "Set paint brush pattern" into tTooltip
    updateOptionArray tName, "paint brush pattern tool", tTooltip, tCount, tDataA
-   
+
    add 1 to tCount
    put "com.livecode.tool.PolygonSides" into tName
    put "Set number of paint polygon sides" into tTooltip
    updateOptionArray tName, "paint polygon sides tool", tTooltip, tCount, tDataA
-   
+
    return tDataA
 end revIDEPaintToolControllers
 
 /**
 Returns information about the run and edit tools.
 
-Returns: an array, keyed by the run and edit tool type IDs, 
+Returns: an array, keyed by the run and edit tool type IDs,
 of properties associated with each of those tools.
 
 **/
@@ -1847,12 +1847,12 @@ function revIDERunEditTools
    put "browse tool" into tReturnData["com.livecode.tool.Browse"]["tool"]
    put "Browse Tool - Your stack is running and can be interacted with" into tReturnData["com.livecode.tool.Browse"]["tooltip"]
    put 1 into tReturnData["com.livecode.tool.Browse"]["order"]
-   
+
    put "tool" into tReturnData["com.livecode.tool.Pointer"]["type"]
    put "pointer tool" into tReturnData["com.livecode.tool.Pointer"]["tool"]
    put "Pointer Tool - Select and edit objects" into tReturnData["com.livecode.tool.Pointer"]["tooltip"]
    put 2 into tReturnData["com.livecode.tool.Pointer"]["order"]
-   
+
    return tReturnData
 end revIDERunEditTools
 
@@ -1860,13 +1860,13 @@ end revIDERunEditTools
 Returns information about the classic control tools.
 
 Returns: an array, keyed by the classic control tool types that appear
-in the Tools palette, of properties associated with each of those classic 
+in the Tools palette, of properties associated with each of those classic
 control tools.
 
 **/
 function revIDEClassicControls
    if sClassicObjectProperties is empty then __objectPropertiesRead
-   
+
    local tReturnData
    repeat for each key tIndex in sClassicObjectProperties
       if tIndex is "com.livecode.interface.classic.widget" then next repeat
@@ -1910,20 +1910,20 @@ function revIDEGetPropertiesOfObjects pObjects
    repeat for each line tObject in pObjects
       if not exists(tObject) then return __revIDEError("Not all objects in the list provided exist")
    end repeat
-   
+
    # Work out the type of the selected objects
    local tObjectTypeList
    put ideObjectTypesFromObjectList(pObjects) into  tObjectTypeList
-   
+
    # Get this list of all the properties to read for the given type list
    local tSharedProperties
    put __objectPropertiesShared(tObjectTypeList, true) into tSharedProperties
-   
+
    # Generate a list of the properties we want to retreive
    local tPropertyValues
    repeat for each line tObject in pObjects
       dispatch function "__readPropertiesOfControl" to tObject with the keys of tSharedProperties, tPropertyValues
-      
+
       repeat for each key tPropertyName in tPropertyValues
          if tPropertyName begins with "effective" then next repeat
          if tPropertyValues["effective" && tPropertyName] is not empty then
@@ -1932,9 +1932,9 @@ function revIDEGetPropertiesOfObjects pObjects
          put tPropertyValues[tPropertyName] into tSharedProperties[tPropertyName]["value"][tObject]
       end repeat
    end repeat
-   
+
    //put the executioncontexts & return & the milliseconds & return & return & return after msg
-   
+
    return tSharedProperties
 end revIDEGetPropertiesOfObjects
 
@@ -1969,7 +1969,7 @@ returns (list): A comma delimited list of global variable names
 **/
 function revIDEGlobalVariables
    if revIDEGetPreference("cShowRevolutionStacks") is true then return the globals
-   
+
    local tGlobalList
    repeat for each item tGlobalName in the globals
       if tGlobalName begins with "gREV" then next repeat
@@ -1980,7 +1980,7 @@ function revIDEGlobalVariables
       end if
    end repeat
    sort items of tGlobalList
-   
+
    return tGlobalList
 end revIDEGlobalVariables
 
@@ -1994,7 +1994,7 @@ function revIDEGlobalPropertyRange pProperty
       local tRangeArray, tLine
       put URL("file:" & revIDESpecialFolderPath("globals") & slash & "rangeArray.txt") into tRangeArray
       set the itemdel to tab
-      
+
       repeat for each line tLine in tRangeArray
          replace comma with return in item 2 of tLine
          put item 2 of tLine into sRangeArray[item 1 of tLine]
@@ -2009,7 +2009,7 @@ function revIDEGlobalPropertyContinuousRange pProperty
       local tContinuousArray, tLine
       put URL("file:" & revIDESpecialFolderPath("globals") & slash & "continuousArray.txt") into tContinuousArray
       set the itemdel to tab
-      
+
       repeat for each line tLine in tContinuousArray
          replace comma with return in item 2 of tLine
          put item 2 of tLine into sContinuousRangeArray[item 1 of tLine]
@@ -2037,7 +2037,7 @@ in memory, taking into account the Show IDE Stacks preference.
 function ideMainStacks
    local tShowIDEStacks
    put revIDEGetPreference("cShowRevolutionStacks") into tShowIDEStacks
-   
+
    if tShowIDEStacks then
       return the mainstacks
    else
@@ -2080,11 +2080,11 @@ private function __ideFilterStackNameListWithPreference pStackNames
    # Are IDE stacks required
    local tShowIDEStacks
    put revIDEGetPreference("cShowRevolutionStacks") into tShowIDEStacks
-   
+
    if tShowIDEStacks then
       return pStackNames
    end if
-   
+
    return __ideRemoveIDEStackNamesFromList(pStackNames)
 end __ideFilterStackNameListWithPreference
 
@@ -2105,21 +2105,21 @@ private function __ideFilterObjectIDListWithPreference pObjectList
    # Are IDE stacks required
    local tShowIDEStacks
    put revIDEGetPreference("cShowRevolutionStacks") into tShowIDEStacks
-   
+
    if tShowIDEStacks then
       return pObjectList
    end if
-   
+
    return __ideRemoveIDEObjectIDsFromList(pObjectList)
 end __ideFilterObjectIDListWithPreference
 
 function revIDEStacksForDataView pIndex
    local tSortType, tSortOrder
    revIDEGetPBSortPreferences "pb_stackSort", tSortType, tSortOrder
-   
+
    # Get list of stacks to display
    local tMainStacks, tInvertedMainStacks
-   
+
    put ideMainStacks() into tMainStacks
    if tSortType is "name" then
       if tSortOrder is "ascending" then
@@ -2130,7 +2130,7 @@ function revIDEStacksForDataView pIndex
    else
       if tSortOrder is "ascending" then
          ## No nothing this is the correct order
-      else 
+      else
          repeat with x = the number of lines in tMainStacks down to 1
             put line x of tMainStacks & return after tInvertedMainStacks
          end repeat
@@ -2138,7 +2138,7 @@ function revIDEStacksForDataView pIndex
          put tInvertedMainStacks into tMainStacks
       end if
    end if
-   
+
    # Recurse through the stacks to get their data
    local tStacksData, tCount
    repeat for each line tStack in tMainStacks
@@ -2156,7 +2156,7 @@ function revIDEStacks pExpandedStackList
    # Get list of stacks to display
    local tMainStacks
    put __ideFilterStackNameListWithPreference(the mainstacks) into tMainStacks
-   
+
    # Recurse through the stacks to get their data
    local tStacksData, tCount
    put 1 into tCount
@@ -2178,11 +2178,11 @@ function revIDEFrontScripts
    # If IDE elements are on not showing, filter the list for rev stacks
    local tFrontScripts
    put __ideFilterObjectIDListWithPreference(the frontscripts) into tFrontScripts
-   
+
    # Create the list of properties to retrieve
    local tProperties
    put "short name" & return & "scriptlines" & return & "scriptstatus" & return & "long id" into tProperties
-   
+
    # Loop through the frontscripts getting the required properties
    # and build the return array
    local tCount, tData
@@ -2191,7 +2191,7 @@ function revIDEFrontScripts
       dispatch function "__readPropertiesOfControl" to tFrontScriptObject with tProperties, tData[tCount]
       add 1 to tCount
    end repeat
-   
+
    return tData
 end revIDEFrontScripts
 
@@ -2205,11 +2205,11 @@ function revIDEBackScripts
    # If IDE elements are on not showing, filter the list for rev stacks
    local tBackScripts
    put __ideFilterObjectIDListWithPreference(the backscripts) into tBackScripts
-   
+
    # Create the list of properties to retrieve
    local tProperties
    put "short name" & return & "scriptlines" & return & "scriptstatus" & return & "long id" into tProperties
-   
+
    # Loop through the frontscripts getting the required properties
    # and build the return array
    local tCount, tData
@@ -2218,7 +2218,7 @@ function revIDEBackScripts
       dispatch function "__readPropertiesOfControl" to tBackScriptObject with tProperties, tData[tCount]
       add 1 to tCount
    end repeat
-   
+
    return tData
 end revIDEBackScripts
 
@@ -2231,11 +2231,11 @@ function revIDEStacksInUse
    # Get the list of frontscripts
    local tStacksInUse
    put __ideFilterStackNameListWithPreference(the stacksInUse) into tStacksInUse
-   
+
    # Create the list of properties to retrieve
    local tProperties
    put "short name" & return & "scriptstatus" & return & "scriptlines" into tProperties
-   
+
    # Loop through the stacks in use getting the required properties
    # and build the return array
    local tCount, tData
@@ -2245,7 +2245,7 @@ function revIDEStacksInUse
       put "stack" && quote & tStack & quote into tData[tCount]["long id"]
       add 1 to tCount
    end repeat
-   
+
    return tData
 end revIDEStacksInUse
 
@@ -2254,7 +2254,7 @@ function revIDEStackIsIDEWindow pStackName
          or pStackName is "revResourceCenter" or pStackName is "revOnline" then
       return true
    end if
-   
+
    return false
 end revIDEStackIsIDEWindow
 
@@ -2321,19 +2321,19 @@ Returns (Any): The value of the preference
 */
 function revIDEGetPreference pPreferenceName
    local tValue
-   
+
    __DevPreference pPreferenceName, tValue
-   
+
    if tValue is empty and there is a stack "revPreferences" then
       put the pPreferenceName of stack "revPreferences" into tValue
    end if
-   
+
    if pPreferenceName is "cScriptEditor,editor,font" and \
          tValue is empty and \
          "Source Code Pro" is among the lines of the fontNames then
       return "Source Code Pro"
    end if
-   
+
    return tValue
 end revIDEGetPreference
 
@@ -2357,7 +2357,7 @@ command __DevPreference pPreferenceName, @rValue
             put 3 into rValue
             break
       end switch
-      
+
    end if
 end __DevPreference
 
@@ -2400,12 +2400,12 @@ constant kFirstReservedIconID = 101000
 
 function revIDENewIconID
    local tNextIconID, tIDList
-   
+
    put the ID stack "revTools" & comma into tIDList
    put the ID of stack "revMenubar" & comma after tIDList
    put the ID of stack "revIDELibrary" & comma after tIDList
    put kFirstReservedIconID after tIDList
-   
+
    put max(tIDList) + 1 into tNextIconID
    return tNextIconID
 end revIDENewIconID
@@ -2415,32 +2415,32 @@ function revIDEThemePath
    local tPlatformName, tSystemVersion
    put revIDEPlatform() into tPlatformName
    put revIDEPlatformVersion() into tSystemVersion
-   
+
    # Find nearest theme version for the given platform
    revIDEPushDefaultFolder revIDESpecialFolderPath("themes")
-   
+
    local tClosestThemeNumber, tHighestThemeNumber
    repeat for each line tThemeFolder in the folders
       if char 1 of tThemeFolder is "." then next repeat
-      
+
       local tThemeFolderStart
       put "com.livecode.theme." & tPlatformName into tThemeFolderStart
-      
+
       if tThemeFolder begins with tThemeFolderStart then
          delete char 1 to the number of chars of tThemeFolderStart + 1 of tThemeFolder
-         
+
          if highestVersionNumber(tSystemVersion,tThemeFolder) < 2 and highestVersionNumber(tClosestThemeNumber,tThemeFolder) is 2 then
             --if tThemeFolder <= tSystemVersion and tThemeFolder > tClosestThemeNumber then
             put tThemeFolder into tClosestThemeNumber
          end if
-         
+
          # keep track of the highest number
          if highestVersionNumber(tHighestThemeNumber,tThemeFolder) is 2 then
             put tThemeFolder into tHighestThemeNumber
          end if
       end if
    end repeat
-   
+
    # Build the path to the theme
    local tThemeName
    if tClosestThemeNumber is empty then
@@ -2452,9 +2452,9 @@ function revIDEThemePath
    else
       put "com.livecode.theme." & tPlatformName & "." & tClosestThemeNumber into tThemeName
    end if
-   
+
    revIDEPopDefaultFolder
-   
+
    return revIDESpecialFolderPath("themes") & slash & tThemeName
 end revIDEThemePath
 
@@ -2481,7 +2481,7 @@ end revIDEPlatform
 function revIDEPlatformVersion
    local tSystemVersion
    put the systemVersion into tSystemVersion
-   
+
    if tSystemVersion begins with "Windows" or tSystemVersion begins with "NT"   then return the last word of tSystemVersion
    return tSystemVersion
 end revIDEPlatformVersion
@@ -2490,7 +2490,7 @@ function revIDEColor pTag
    if pTag is "edition_color" then
       return revEnvironmentEditionProperty("color")
    end if
-   
+
    switch pTag
       case "text_1"
          return "0,0,0"
@@ -2524,10 +2524,10 @@ function revIDEColor pTag
          break
       case "dataView_disclosureIconColor"
          return "99,99,99"
-         break         
+         break
       case "dataView_disclosureIconHiliteColor"
          return "216,216,216"
-         break 
+         break
       case "palette_background"
          if the platform is "Win32" then
             return "240,240,240"
@@ -2539,7 +2539,7 @@ function revIDEColor pTag
          return "200,206,215"
          break
    end switch
-   
+
    return ideColorGet(pTag)
 end revIDEColor
 
@@ -2586,7 +2586,7 @@ Returns: the long id of the mainstack containing <pLongID>
 
 Description:
 Returns the long id of the mainstack of the object with long id <pLongID>.
-To retrieve the immediate parent stack of an object which may be a substack, 
+To retrieve the immediate parent stack of an object which may be a substack,
 use the <ideStackOfObject> function.
 
 References: ideStackOfObject (function)
@@ -2609,9 +2609,9 @@ on revIDEMoveControl pControl, pNewCard, pLayerNumber
    lock messages
    copy pControl to pNewCard
    put the long id of it into tNewControl
-   
+
    delete pControl
-   
+
    try
       revIDESetPropertyOfObject tNewControl, "layer", pLayerNumber
    catch pError
@@ -2625,50 +2625,50 @@ command revIDEUpdatePBPreferences
    if revIDEGetPreference("pb_indicator") is empty then
       revIDESetPreference "pb_indicator","icon"
    end if
-   
+
    if revIDEGetPreference("pb_sections") is empty then
       revIDESetPreference "pb_sections","Stacks"
    end if
-   
+
    local tOldSortType,tOldSortOrder
    put revIDEGetPreference("ideProjectBrowser_sort") into tOldSortType
    put revIDEGetPreference("ideProjectBrowser_sortOrder") into tOldSortOrder
    if tOldSortOrder is empty then put "bottom to top" into tOldSortOrder
-   
+
    local tSortOrder
    if tOldSortOrder is "bottom to top" then
       put "Ascending" into tSortOrder
    else
       put "Descending" into tSortOrder
    end if
-   
+
    local tSortType
    if tOldSortType is empty then
       put "Name" into tSortType
    else
       put tOldSortType into tSortType
    end if
-   
+
    if revIDEGetPreference("pb_stackSort") is empty then
-      ## We can assume none of the new Project Browser prefs are set      
+      ## We can assume none of the new Project Browser prefs are set
       revIDESetPBSortPreferences "pb_stackSort", tSortType, tSortOrder
    end if
-   
+
    -- Layer should be default for cards and controls
    if tOldSortType is empty then
       put "Layer" into tSortType
    end if
-   
+
    if revIDEGetPreference("pb_cardSort") is empty then
-      ## We can assume none of the new Project Browser prefs are set      
+      ## We can assume none of the new Project Browser prefs are set
       revIDESetPBSortPreferences "pb_cardSort", tSortType, tSortOrder
    end if
-   
+
    if revIDEGetPreference("pb_controlSort") is empty then
-      ## We can assume none of the new Project Browser prefs are set      
+      ## We can assume none of the new Project Browser prefs are set
       revIDESetPBSortPreferences "pb_controlSort", tSortType, tSortOrder
    end if
-   
+
    if revIDEGetPreference("pb_textSize") is empty then
       revIDESetPreference "pb_textSize", "default"
    end if
@@ -2681,7 +2681,7 @@ command revIDEGetPBSortPreferences pPref, @rSortType, @rSortOrder
       revIDEUpdatePBPreferences
       put revIDEGetPreference(pPref) into tPreference
    end if
-   
+
    put word 1 of tPreference into rSortType
    put word -1 of tPreference into rSortOrder
 end revIDEGetPBSortPreferences
@@ -2692,9 +2692,9 @@ end revIDESetPBSortPreferences
 
 function revIDEStackProperties pStackID, pLevel
    if not exists(pStackID) then return __revIDEError("You must specify an object to read from." &&  quote & pStackID & quote && "is not an object")
-   
+
    local tStackArray
-   
+
    dispatch function "__readPropertiesOfControl" to pStackID with sStackPropertiesToRead, tStackArray
    --put the result into tStackArray
    if word 3 of pStackID is "of" then
@@ -2713,13 +2713,13 @@ function revIDECardPropertiesOfStack pStackID, pLevel
    local tCardID, tCardArray, tIndex,tCardIDs
    local tSubStackIDs, tSubstack, tSortedChildControlListIndexA
    local tSortType, tSortOrder
-   
+
    revIDEGetPBSortPreferences "pb_cardSort", tSortType, tSortOrder
-   
+
    put the cardIDs of stack pStackID into tCardIDs
-   
+
    put  __createSortedControlsArray (pStackID, tCardIDs, tSortType, tSortOrder) into tSortedChildControlListIndexA
-   
+
    repeat with x = 1 to the number of elements of tSortedChildControlListIndexA
       put tSortedChildControlListIndexA[x]["controlID"] into tCardID
       add 1 to tIndex
@@ -2729,20 +2729,20 @@ function revIDECardPropertiesOfStack pStackID, pLevel
       put pLevel+1 into tCardArray[tIndex]["level"]
       put the number of lines in the childControlIDs of card id tCardID of pStackID into tCardArray[tIndex]["childCount"]
    end repeat
-   
+
    ## Substacks
    local tSubStacks, tSubstacksList, tStackName
-   
+
    ## Sort the substacks as per preferences
    revIDEGetPBSortPreferences "pb_stackSort", tSortType, tSortOrder
-   
+
    set the itemDel to tab
    put the substacks of stack pStackID into tSubStacks
    repeat with x = 1 to the number of lines in tSubStacks
       put x & tab & line x of tSubStacks & return after tSubStacksList
    end repeat
    delete the last character of tSubStacks
-   
+
    if tSortType is "name" then
       if tSortOrder is "ascending" then
          sort lines of tSubStacksList ascending by item 2 of each
@@ -2756,11 +2756,11 @@ function revIDECardPropertiesOfStack pStackID, pLevel
          sort lines of tSubStacksList descending numeric by item 1 of each
       end if
    end if
-   
+
    repeat for each line tSubStack in tSubStacksList
       add 1 to tIndex
       put item 2 of tSubStack into tStackName
-      
+
       dispatch function "__readPropertiesOfControl" to stack tStackName of pStackID with sStackPropertiesToRead, tCardArray[tIndex]
       put "substack" into  tCardArray[tIndex]["type"]
       put "container" into  tCardArray[tIndex]["style"]
@@ -2768,7 +2768,7 @@ function revIDECardPropertiesOfStack pStackID, pLevel
       put the number of lines in the cardIDs of stack tStackName of pStackID into  tCardArray[tIndex]["childCount"]
       if  tCardArray[tIndex]["childCount"] is 0 then put 1 into  tCardArray[tIndex]["childCount"]
    end repeat
-   
+
    return tCardArray
 end revIDECardPropertiesOfStack
 
@@ -2776,7 +2776,7 @@ function __createSortedControlsArray pParentObject, pChildControls, pSortType, p
    local tChildCount, tChildControlListA, tChildControlListIndexA, tNextIndex, tSortedChildControlListIndexA
    -- create the array
    put 1 into tChildCount
-   
+
    if pParentObject begins with "stack" then
       repeat with x = 1 to the number of cards of stack pParentObject
          put x into tChildControlListA["layer"]
@@ -2794,7 +2794,7 @@ function __createSortedControlsArray pParentObject, pChildControls, pSortType, p
          add 1 to tChildCount
       end repeat
    end if
-   
+
    -- sort the array
    get the keys of tChildControlListIndexA
    if pSortType is "name" then
@@ -2816,7 +2816,7 @@ function __createSortedControlsArray pParentObject, pChildControls, pSortType, p
       put tChildControlListIndexA[tIndex] into tSortedChildControlListIndexA[tNextIndex]
       add 1 to tNextIndex
    end repeat
-   
+
    return tSortedChildControlListIndexA
 end __createSortedControlsArray
 
@@ -2824,28 +2824,28 @@ function revIDEControlPropertiesOfCard pCardID, pLevel
    local tChildControls, tControlArray, tIndex, tFullArray
    local tSortedChildControlListIndexA, tControlID
    local tSortType,tSortOrder
-   
+
    ## Sort controls as per preferences
    revIDEGetPBSortPreferences "pb_controlSort", tSortType, tSortOrder
-   
+
    -- If controls are sorted by name, present them as a flat list
    if tSortType is name then
       put the controlIDs of pCardID into tChildControls
    else
       put the childcontrolIDs of pCardID into tChildControls
    end if
-   
+
    put  __createSortedControlsArray (pCardID, tChildControls, tSortType, tSortOrder) into tSortedChildControlListIndexA
-   
+
    repeat with x = 1 to the number of elements of tSortedChildControlListIndexA
       put tSortedChildControlListIndexA[x]["controlID"] into tControlID
-      
+
       add 1 to tIndex
       put empty into tControlArray
       dispatch function "__readPropertiesOfControl" to control id tControlID of pCardID with sControlPropertiesToRead, tControlArray
-      
+
       put tControlArray["type"] && "id" && tControlID && "of" && pCardID into tControlArray["long id"]
-      
+
       if tControlArray["type"] is "group" then
          if tControlArray["custom control"] is true then
             put "control" into tControlArray["style"]
@@ -2862,7 +2862,7 @@ function revIDEControlPropertiesOfCard pCardID, pLevel
       else
          put "control" into tControlArray["style"]
       end if
-      
+
       put pLevel+1 into tControlArray["level"]
       put tControlArray into tFullArray[tIndex]
    end repeat
@@ -2873,28 +2873,28 @@ function revIDEControlPropertiesOfGroup pGroupID, pLevel
    local tControlArray, tIndex, tControlID
    local tChildControls, tSortedChildControlListIndexA
    local tSortType,tSortOrder
-  
+
   ## Sort controls as per preferences
    revIDEGetPBSortPreferences "pb_controlSort", tSortType, tSortOrder
-   
+
    put  the childcontrolIDs of pGroupID into tChildControls
-   
+
    put  __createSortedControlsArray (pGroupID, tChildControls, tSortType, tSortOrder) into tSortedChildControlListIndexA
-  
+
    repeat with x = 1 to the number of elements of tSortedChildControlListIndexA
       put tSortedChildControlListIndexA[x]["controlID"] into tControlID
       add 1 to tIndex
       dispatch function "__readPropertiesOfControl" to control id tControlID of pGroupID with sControlPropertiesToRead, tControlArray[tIndex]
-      
+
       if tControlArray[tIndex]["type"] is "group" then
          put "group" into tControlArray[tIndex]["style"]
          put the number of controls of control id tControlID of pGroupID into tControlArray[tIndex]["childCount"]
       else
          put "control" into tControlArray[tIndex]["style"]
       end if
-      
+
       put tControlArray[tIndex]["type"] && "id" && tControlID && "of" && pGroupID into tControlArray[tIndex]["long id"]
-      
+
       put pLevel+1 into tControlArray[tIndex]["level"]
    end repeat
    return tControlArray
@@ -2945,7 +2945,7 @@ function revIDEStackAudioClips pStack
          put "pwd" into tScriptLines
       end try
       put tScriptLines into tAudioClipArray[tClip]["scriptlines"]
-      put the scriptStatus of Audioclip tClip of pStack into tAudioClipArray[tClip]["scriptstatus"] 
+      put the scriptStatus of Audioclip tClip of pStack into tAudioClipArray[tClip]["scriptstatus"]
 
       // Behavior
       if the behavior of Audioclip tClip of pStack is not empty then
@@ -2973,7 +2973,7 @@ end revIDEStackAudioClips
 
 function revIDEStackVideoClips pStack
    local tVideoClipCount, tVideoClipArray, tScriptLines, tBehavior, tBehaviorScriptLines, tAudioClipArray
-   
+
    -- MM-2013-09-16: [[ Bug 11280 ]] as a result of the fix for bug 11068, the engine is more strict in the way it processes references.
    -- Removed unecessary "stack" keywords.
    put the num of videoclips in pStack into tVideoClipCount
@@ -2984,7 +2984,7 @@ function revIDEStackVideoClips pStack
       put the scriptStatus of videoclip tClip of pStack into tVideoClipArray[tClip]["scriptstatus"]
       put the long id of videoclip tClip of pStack into tVideoClipArray[tClip]["long id"]
       put 3 into tVideoClipArray[tClip]["level"]
-      
+
       // Script
       try
          put the number of lines in  the script of videoclip tClip of pStack into tScriptLines
@@ -3143,7 +3143,7 @@ on revIDEDownloadProgressUpdate pURL, pStatus
 end revIDEDownloadProgressUpdate
 
 on revIDEDownloadFinished pURL
-   __downloadNextFile  
+   __downloadNextFile
 end revIDEDownloadFinished
 
 on revIDEActionCreateObject pObjectTypeID
@@ -3153,9 +3153,9 @@ end revIDEActionCreateObject
 private command __setPropertiesToDefaults pObjectID, pPropsInfoA
    # Set all the properties to their default
    if pPropsInfoA["style"]["default"] is not empty and pPropsInfoA["style"]["default"] is not "no_default" then
-      revIDESetPropertyOfObject pObjectID, "style", pPropsInfoA["style"]["default"] 
+      revIDESetPropertyOfObject pObjectID, "style", pPropsInfoA["style"]["default"]
    end if
-   
+
    local tPropInfoA
    repeat for each key tProperty in pPropsInfoA
       put pPropsInfoA[tProperty] into tPropInfoA
@@ -3166,9 +3166,9 @@ private command __setPropertiesToDefaults pObjectID, pPropsInfoA
    end repeat
 end __setPropertiesToDefaults
 
-private command  __setSizeToPreference pObjectID, pObjectType  
+private command  __setSizeToPreference pObjectID, pObjectType
    local tWidthPref, tHeightPref
-   switch pObjectType 
+   switch pObjectType
       case "com.livecode.interface.classic.Button"
       case "com.livecode.interface.classic.DefaultButton"
       case "com.livecode.interface.classic.RectangleButton"
@@ -3213,7 +3213,7 @@ private command  __setSizeToPreference pObjectID, pObjectType
          put "cREVPlayerHeight" into tHeightPref
          break
       case "com.livecode.interface.classic.Progressbar"
-         if the platform is "MacOS" then         
+         if the platform is "MacOS" then
             put "cScrollbarWidth" into tWidthPref
             put "cMacOSProgressScrollbarHeight" into tHeightPref
          else
@@ -3238,7 +3238,7 @@ private command  __setSizeToPreference pObjectID, pObjectType
          ## For any other controls the defaults are used
          break
    end switch
-   
+
    local tHeight, tWidth
    if tWidthPref is not empty then
       put revIDEGetPreference(tWidthPref) into tWidth
@@ -3246,7 +3246,7 @@ private command  __setSizeToPreference pObjectID, pObjectType
    if tHeightPref is not empty then
       put revIDEGetPreference(tHeightPref) into tHeight
    end if
-   
+
    if tWidth is a number then
       set the width of pObjectID to tWidth
    end if
@@ -3270,22 +3270,22 @@ on revIDECreateObject pObjectTypeID, pTarget, pLoc
    if not __objectTypeIsControl(pObjectTypeID) then
       return __revIDEError("Object must be a control")
    end if
-   
+
    if not exists(pTarget) then return __revIDEError("Cannot create object. Target does not exist: " && pTarget)
    if not pObjectTypeID begins with "com.livecode" then return __revIDEError("No such object type ID: " && pTarget)
-   
+
    if sClassicObjectProperties is empty then __objectPropertiesRead
    # Set the default stack to the target we're creating the object on
    set the defaultstack to revIDEStackOfObject(pTarget)
-   
+
    if pLoc is empty then
       put the loc of this card of the defaultStack into pLoc
    end if
-   
+
    # Create the object
    lock screen
    lock messages
-   
+
    local tPropInfoA, tObjPropsA
    # Get the engine control type
    if pObjectTypeID begins with "com.livecode.interface.classic" then
@@ -3297,10 +3297,10 @@ on revIDECreateObject pObjectTypeID, pTarget, pLoc
          put round(the cTabButtonWidth of stack "revPreferences" / 2), round(the cTabButtonHeight of stack "revPreferences" / 2) into tCreateRect
          put item 1 of tCreateRect + the cTabButtonWidth of stack "revPreferences" into item 3 of tCreateRect
          put item 2 of tCreateRect + the cTabButtonHeight of stack "revPreferences" into item 4 of tCreateRect
-         
+
          local lDataGrid
          put true into lDataGrid -- select data grid at end not single control
-         
+
          unlock messages
          # tObjectId is passed by reference and will have the data grid group id placed into it
          addDataGridToStack the short name of this stack, tCreateRect, empty, empty, tCreatedControlID
@@ -3316,14 +3316,14 @@ on revIDECreateObject pObjectTypeID, pTarget, pLoc
       else
          local tObjectType
          put sClassicObjectProperties[pObjectTypeID]["type"] into tObjectType
-         
+
          if tObjectType is empty then return __revIDEError("Invalid classic control type ID: " && pTarget)
-         
+
          # A classic control
          do "create" && tObjectType
          put the long ID of the last control into tCreatedControlID
       end if
-      
+
       put sClassicObjectProperties[pObjectTypeID]["properties"] into tObjPropsA
    else
       # Not a classic control
@@ -3331,20 +3331,20 @@ on revIDECreateObject pObjectTypeID, pTarget, pLoc
          if pObjectTypeID is "com.livecode.widget.native.map" and the platform is "MacOS" and (revIDEPlatformVersion() begins with "10.9" or revIDEPlatformVersion() begins with "10.10") then
             local tMessage
             put "The Mac MapKit API is supported from OS X 10.9 onwards, but Apple restricts use of the API on 10.9 and 10.10 to apps which are distributed from the Mac AppStore with an appropriate entitlement. " & \
-                  "Due to this, general use of the Map widget only supports OS X 10.11 onwards. " & CR & CR & \  
+                  "Due to this, general use of the Map widget only supports OS X 10.11 onwards. " & CR & CR & \
                   "However, you can still create a standalone with the Map widget on OSX 10.9 or 10.10 (of course you will see an empty grid rather than the actual map), " & \
                   " BUT this standalone will run as expected on OSX 10.11 and above." into tMessage
-            
+
             answer warning revIDELocalise(tMessage) with "Cancel" and "Continue"
             if it is "Cancel" then exit revIDECreateObject
          end if
-         
+
          create widget as pObjectTypeID
          put the long id of the last control into tCreatedControlID
-         
+
          put revIDEExtensionProperties(pObjectTypeID, false) into tObjPropsA
          union tObjPropsA with sClassicObjectProperties["com.livecode.interface.classic.widget"]["properties"]
-         
+
          local tSize
          put revIDEExtensionProperty(pObjectTypeID, "preferredsize") into tSize
          if tSize is not empty then
@@ -3355,40 +3355,40 @@ on revIDECreateObject pObjectTypeID, pTarget, pLoc
          return false
       end try
    end if
-   
+
    __setPropertiesToDefaults tCreatedControlID, tObjPropsA
-   
+
    ## Set the size of the object to the size set in the Preferences
    __setSizeToPreference tCreatedControlID, pObjectTypeID
-   
+
    set the loc of tCreatedControlID to pLoc
-   
+
    unlock messages
    unlock screen
-   
+
    ## Prevent passing of ideNewControl message for objects created on IDE stacks
    if revIDEObjectIsOnIDEStack(tCreatedControlID) is false then
       // AL-2015-04-08: [[ Bug 14822 ]] Ensure 'edited' status of stack is set
       revIDESetEdited the short name of this stack
       ideMessageSend "ideNewControl", tCreatedControlID
    end if
-   
+
    return tCreatedControlID
 end revIDECreateObject
 
 on revIDECloneObject pLongID
    if not exists(pLongID) then return __revIDEError("Cannot create object. Target does not exist:" && pLongID)
-   
+
    if word 1 of pLongID is "card" or word 1 of pLongID is "stack" then
       clone pLongID
    else
       local tTarget, tLoc, tControlType
       local tCreatedControlID
-      
+
       put the loc of pLongID into tLoc
       add 20 to item 1 of tLoc
       add 20 to item 2 of tLoc
-            
+
       clone pLongID
       put it into tCreatedControlID
       set the loc of tCreatedControlID to tLoc
@@ -3447,13 +3447,13 @@ end revIDEDeleteObjects
 on revIDEActionGroupObjects
    local tSelobj
    put the selobj into tSelobj
-   
+
    if tSelobj is empty then
       exit revIDEActionGroupObjects
    end if
-   
+
    revIDEGroupObjects tSelobj
-   
+
    if the result is empty and exists(it) then
       select it
    else
@@ -3486,33 +3486,33 @@ The new group long ID or empty in the case the group could not be created
 **/
 on revIDEGroupObjects pObjectIDs
    filter lines of pObjectIDs without empty
-   
+
    if pObjectIDs is empty then
       return "No objects" for error
    end if
-   
+
    local tObject
    repeat for each line tObject in pObjectIDs
       if not exists(tObject) then
          return "Object does not exist" for error
       end if
    end repeat
-   
+
    sort lines of pObjectIDs numeric by the layer of each
-   
+
    lock screen
-   
+
    replace return with " and " in pObjectIDs
-   
+
    local tError
    try
       do "group " & pObjectIDs
    catch tError
       return "Could not group objects" for error
    end try
-   
+
    unlock screen
-   
+
    return it for value
 end revIDEGroupObjects
 
@@ -3572,7 +3572,7 @@ end revIDESetPropertyOfObject
 
 command revIDEInspectObjects pObjects
    lock screen
-   
+
    revIDEOpenPalette "inspector"
 
    ideMessageSend "ideInspectObjects", pObjects
@@ -3611,18 +3611,18 @@ on revIDEEditScriptOfObjects pObjectList
 end revIDEEditScriptOfObjects
 
 on revIDEEditScriptOfObject pObject
-   # Don't try and edit the script of non-existent objects 
+   # Don't try and edit the script of non-existent objects
    if not exists(pObject) then
       exit revIDEEditScriptOfObject
    end if
-   
+
    # Send the ideEditScript message
    send "ideMessageSend ideEditScript","pObject" to stack "revIDELibrary" in 0 milliseconds
 
    # First obtain a correct object reference. The reason for this is edit group mode
    local tObject
    put revRuggedId(pObject) into tObject
-   
+
    # Update the currently editing objects
    revIDEStartEditingScript pObject
 
@@ -3751,10 +3751,10 @@ command revIDESelectObjects pObjects
       replace return with " AND " in pObjects
       do "select" && pObjects
    catch tError
-      
+
    end try
    set the lockMessages to tOldLockMessages
-   
+
    send "ideMessageSend" && "ideSelectedObjectChanged" to me in 0 milliseconds
 end revIDESelectObjects
 
@@ -3764,9 +3764,9 @@ end revIDERefreshProjectBrowser
 
 on revIDEAlignControls pControls, pPosition
    local tInitialControl, tInitialValue
-   
+
    put line 1 of pControls into tInitialControl
-   
+
    if pPosition is "left" then
       put the left of tInitialControl into tInitialValue
    else if pPosition is "top" then
@@ -3780,7 +3780,7 @@ on revIDEAlignControls pControls, pPosition
    else if pPosition is "width" then
       put the width of tInitialControl into tInitialValue
    end if
-   
+
    repeat with x = 2 to the number of lines in pControls
       revIDESetPropertyOfObject line x of pControls, pPosition, tInitialValue
    end repeat
@@ -3812,16 +3812,16 @@ end revIDEAlignControlsFromPI
 on revIDEDistributeControls pObjects, pHorizontally, pType
    local tNumberOfObjects
    put the number of lines in pObjects into tNumberOfObjects
-   
+
    local tSize
    put 0 into tSize
-   
+
    local tPerSpace, tOffset
    switch pType
       case "First to last selected"
          if tNumberOfObjects < 3 then exit to top
          repeat with i = 2 to tNumberOfObjects -1
-            get line i of pObjects 
+            get line i of pObjects
             if pHorizontally then
                add the width of it to tSize
             else
@@ -3831,7 +3831,7 @@ on revIDEDistributeControls pObjects, pHorizontally, pType
          local tFirstObj, tLastObj
          put line 1 of pObjects into tFirstObj
          put line tNumberOfObjects of pObjects into tLastObj
-         
+
          local tStartCoord, tEndCoord
          if pHorizontally then
             put the right of tFirstObj into tStartCoord
@@ -3839,7 +3839,7 @@ on revIDEDistributeControls pObjects, pHorizontally, pType
          else
             put the bottom of tFirstObj into tStartCoord
             put the top of tLastObj into tEndCoord
-         end if 
+         end if
          put (tEndCoord - tStartCoord - tSize) / (tNumberOfObjects -1) into tPerSpace
          put tStartCoord + tPerSpace into tOffset
          repeat with i = 2 to tNumberOfObjects -1
@@ -3847,7 +3847,7 @@ on revIDEDistributeControls pObjects, pHorizontally, pType
             if pHorizontally then
                set the left of it to round(tOffset)
                add the width of it + tPerSpace to tOffset
-            else 
+            else
                set the top of it to round(tOffset)
                add the height of it + tPerSpace to tOffset
             end if
@@ -3879,7 +3879,7 @@ on revIDEDistributeControls pObjects, pHorizontally, pType
             if pHorizontally then
                set the left of it to round(tOffset)
                add the width of it + tPerSpace to tOffset
-            else 
+            else
                set the top of it to round(tOffset)
                add the height of it + tPerSpace to tOffset
             end if
@@ -3894,7 +3894,7 @@ on revIDEDistributeControls pObjects, pHorizontally, pType
             put line (i - 1) of pObjects into tPrevObj
             if pHorizontally then
                set the left of tNextObj to the right of tPrevObj
-            else             
+            else
                set the top of tNextObj to the bottom of tPrevObj
             end if
             send "revCacheGeometry true" to tNextObj
@@ -4054,7 +4054,7 @@ function revIDESpecialFolderPath pKey, pParam
       case "temp extensions"
          put revEnvironmentUserExtensionsPath() & "/temp" into tPath
          revIDEEnsurePath tPath
-         return tPath    
+         return tPath
          break
       case "downloading extensions"
          put revEnvironmentUserExtensionsPath() & "/downloading" into tPath
@@ -4243,21 +4243,21 @@ end myHandler
 Description:
 Pushes the current defaultFolder onto a list of defaultFolders.
 If <pFolder> is specified, then the defaultFolder is set to <pFolder>.
-revIDEPopDefaultFolder then pops the list and sets the 
+revIDEPopDefaultFolder then pops the list and sets the
 default folder to the popped value.
 **/
 on revIDEPushDefaultFolder pFolder
    put the defaultfolder into sDefaultFolderList[the number of elements in sDefaultFolderList + 1]
-   
+
    local tError
    if pFolder is not empty then
       set the defaultFolder to pFolder
-      
+
       if the result is not empty then
          put __revIDEError("Invalid default folder:" && pFolder) into tError
       end if
    end if
-   
+
    return tError
 end revIDEPushDefaultFolder
 
@@ -4277,28 +4277,28 @@ on myHandler
 end myHandler
 
 Description:
-Pops the last stored defaultFolder and sets the 
+Pops the last stored defaultFolder and sets the
 default folder to the popped value.
    **/
 on revIDEPopDefaultFolder
    local tToPop
    put the number of elements in sDefaultFolderList into tToPop
    if tToPop is 0 then return __revIDEError("Mismatched default folder store / restore")
-   
+
    set the defaultfolder to sDefaultFolderList[tToPop]
    local tError
    if the result is not empty then
       put __revIDEError("Folder to restore no longer exists") into tError
    end if
    delete variable sDefaultFolderList[tToPop]
-   return tError  
+   return tError
 end revIDEPopDefaultFolder
 
 /*
 summary: Outputs a flat version of an array to the messagebox.
 pArray (Array): The array you which to convert
 returns (String): A text representation of the array with indented with the tab character for readability
-*/  
+*/
 on revPutArray pArray
    if the number of elements of pArray is 0 then
       put "not an array"
@@ -4359,12 +4359,12 @@ end revIDEAvailablePalettes
 
 function revIDEPaletteToStackName pPalette
    # This abstraction is here because other aspects of the IDE need to know the avaiable palettes.
-   # For example, the view menu listing all the available palettes and their state. Leaving this check 
+   # For example, the view menu listing all the available palettes and their state. Leaving this check
    # in, rather than having a default in the switch forces developers to add any new palettes to revIDEAvailablePalettes()
    if pPalette is not among the items of revIDEAvailablePalettes() then
       return __revIDEError("No available palette with name" && pPalette)
    end if
-   
+
    switch pPalette
       case "menubar"
          return "revMenuBar"
@@ -4411,41 +4411,41 @@ end revIDEPaletteToStackName
 on revIDEEnsureOnscreen pStackName
    # Ensure the stack exists
    if there is not a stack pStackName then return __revIDEError("No such stack:" && pStackName)
-   
+
    local tScreenRect
    put line (the screen of stack pStackName) of the working screenrects into tScreenRect
-   
+
    local tScreenHeight, tScreenWidth
    put item 4 of tScreenRect - item 2 of tScreenRect into tScreenHeight
    put item 3 of tScreenRect - item 1 of tScreenRect into tScreenWidth
-   
+
    if the left of stack pStackName < item 1 of tScreenRect then
       set the left of stack pStackName to item 1 of tScreenRect
    else if the right of stack pStackName > item 3 of tScreenRect and the width of stack pStackName < tScreenWidth then
       set the right of stack pStackName to item 3 of tScreenRect
    end if
-   
+
    if the effective top of stack pStackName < item 2 of tScreenRect then
       set the top of stack pStackName to (item 2 of tScreenRect + abs(the top of stack pStackName - the effective top of stack pStackName))
    else if the bottom of stack pStackName > item 4 of tScreenRect and the height of stack pStackName < tScreenHeight then
       set the bottom of stack pStackName to item 4 of tScreenRect
    end if
-   
+
    revIDESetPaletteRectPreference pStackName
 end revIDEEnsureOnscreen
 
 /*
 Positions the palette.
 
-If the user has set a previous moved a palette, the palette is returned to that position. 
+If the user has set a previous moved a palette, the palette is returned to that position.
 If the palette is being opened for the first time, it is placed in a predetermined position
 */
 on revIDEPositionPalette pStackName
    if there is not a stack pStackName then exit revIDEPositionPalette
-   
+
    local tRect
    put revIDEGetPaletteRectPreference(pStackName) into tRect
-   
+
    if __isRect(tRect) then
       # A previous stored rect was found for the stack. Restore is position if possible.
       switch pStackName
@@ -4460,7 +4460,7 @@ on revIDEPositionPalette pStackName
             break
       end switch
    else
-      # If no sizing information can be found then position the stack in the 
+      # If no sizing information can be found then position the stack in the
       # default location. Only do this for specified stacks.
       switch pStackName
          case "revMenuBar"
@@ -4483,10 +4483,10 @@ on revIDEPositionPalette pStackName
             break
       end switch
    end if
-   
+
    # AL-2015-09-15: [[ Bug 15745 ]] Ensure palettes don't get placed off screen
    revIDEEnsureOnscreen pStackName
-   
+
 end revIDEPositionPalette
 
 constant kToolsMenubarGap = 25
@@ -4496,7 +4496,7 @@ on revIDEPositionPaletteDefault pStackName
    put revIDEStackScreenRect(pStackName, true) into tScreenRect
    put item 4 of tScreenRect - item 2 of tScreenRect into tScreenHeight
    put item 3 of tScreenRect - item 1 of tScreenRect into tScreenWidth
-   
+
    switch pStackName
       case "revMenuBar"
          set the topleft of stack pStackName to item 1 to 2 of tScreenRect
@@ -4515,38 +4515,38 @@ on revIDEPositionPaletteDefault pStackName
       case "revDictionary"
          set the rect of stack pStackName to item 1 of tScreenRect+tScreenWidth * 0.5, item 2 of tScreenRect+100, item 1 of tScreenRect+tScreenWidth * 0.9, item 2 of tScreenRect+tScreenHeight * 0.9
          break
-      default 
-         # If no sizing information can be found position the stack in the center of the 
+      default
+         # If no sizing information can be found position the stack in the center of the
          # default screen
-         
+
          ## If the stack is a Script Editor ensure it will fit on screen
-         if pStackName begins with revIDEScriptEditorPrefix() then 
+         if pStackName begins with revIDEScriptEditorPrefix() then
             set the rect of stack pStackName to item 1 of tScreenRect+ tScreenWidth * 0.3,  item 2 of tScreenRect+tScreenHeight * 0.2,item 1 of tScreenRect+ tScreenWidth * 0.7,  item 2 of tScreenRect+tScreenHeight * 0.8
          else
             set the loc of stack pStackName to item 1 of tScreenRect+ tScreenWidth * 0.5, item 2 of tScreenRect+tScreenHeight * 0.5
          end if
          break
    end switch
-   
+
 end revIDEPositionPaletteDefault
 
 function __isRect pRect
    # Check it has 4 items
    if the number of items of pRect is not 4 then return false
-   
+
    # Check all the items are numbers
    repeat for each item tNumber in pRect
       if tNumber is not a number then
          return false
       end if
    end repeat
-   
+
    # Check the rect has width
    if item 3 of pRect - item 1 of pRect < 0 then return false
-   
+
    # Check the rect has height
    if item 4 of pRect - item 2 of pRect < 0 then return false
-   
+
    # Passed all the tests
    return true
 end __isRect
@@ -4556,7 +4556,7 @@ on revIDESetPaletteRectPreference pStackName
    if the iconic of stack pStackName then
       exit revIDESetPaletteRectPreference
    end if
-   
+
    local tRect
    put the rect of stack pStackName into tRect
    replace " " with "_" in pStackName
@@ -4571,7 +4571,7 @@ function revIDEGetPaletteRectPreference pStackName
    if item 1 to 2 of tRect is "-32000,-32000" then
       return empty
    end if
-   
+
    return tRect
 end revIDEGetPaletteRectPreference
 
@@ -4580,7 +4580,7 @@ on revIDEClearPaletteRects
    put revIDEPreferenceNames() into tPreferenceNames
    repeat for each line tPreference in tPreferenceNames
       if tPreference begins with "palette_rect_" then
-         revIDESetPreference tPreference, "0" 
+         revIDESetPreference tPreference, "0"
       end if
    end repeat
 end revIDEClearPaletteRects
@@ -4596,7 +4596,7 @@ end revIDEBrowserWidgetUnavailable
 /*
 Opens an IDE stack as a palette. In the future this should be changed so that
 palettes can decide what mode they ought to be opened in, i.e. this logic should
-be removed from the IDE library and be specific to the stack rather than the 
+be removed from the IDE library and be specific to the stack rather than the
 palette name.
 
 pPaletteName (String):The readable name of the palette to be opened
@@ -4604,12 +4604,12 @@ example: revIDEOpenPalette "inspector"
 */
 command revIDEOpenPalette pPaletteName
    local tExistingPalette, tPalette, tPaletteID
-   
+
    local tStackName
    put revIDEPaletteToStackName(pPaletteName) into tStackName
-   
+
    if there is not a stack tStackName then return __revIDEError("No such palette:" && pPaletteName)
-   
+
    hide stack tStackName
    switch pPaletteName
       case "Start Center"
@@ -4655,7 +4655,7 @@ command revIDEOpenPalette pPaletteName
             else
                put "guide" into tWhich
             end if
-            
+
             revIDEGenerateDictionaryHTML tWhich
             launch url ("file:" & revIDEGetDictionaryUrl(tWhich))
          else
@@ -4663,7 +4663,7 @@ command revIDEOpenPalette pPaletteName
          end if
          break
       case "inspector"
-         # The inspector stack is now a manager for property inspectors, 
+         # The inspector stack is now a manager for property inspectors,
          # and does not need to be visible.
          go invisible stack tStackName as palette
          return empty
@@ -4717,10 +4717,10 @@ References: revIDEStackIsIDEStack (function)
 **/
 function revIDEObjectIsOnIDEStack pLongID
    if not exists(pLongID) then return false
-   
+
    local tMainStack
    put ideMainStackOfObject(pLongID) into tMainStack
-   
+
    return revIDEStackIsIDEStack(tMainStack)
 end revIDEObjectIsOnIDEStack
 
@@ -4889,22 +4889,22 @@ Install the given extension's user guide
 on revIDEInstallUserGuide pGuideFolder, pExtensionName, pAuthor
    local tGuideFile
    put pGuideFolder & slash & "guide.md" into tGuideFile
-   
+
    # Convert the user guide to a JSON array to append to user guide data
    local tGuide
    put revIDEUTF8FileContents(tGuideFile) into tGuide
    if tGuide is empty then
       return "no user guide data"
    end if
-   
+
    local tGuideJSON
    put "{" & CR after tGuideJSON
    put tab & quote & "guide" & quote & ":" && quote & pExtensionName & quote & comma & CR after tGuideJSON
    put quote & "data" & quote & ":" & __escapeStringAndConvertLineEndings(tGuide) & CR after tGuideJSON
    put "}" after tGuideJSON
-   
+
    revIDESetUTF8FileContents pGuideFolder & slash & "guide.js", tGuideJSON
-   
+
    # Now regenerate the built guides
    revIDERegenerateBuiltGuides
 end revIDEInstallUserGuide
@@ -4913,10 +4913,10 @@ end revIDEInstallUserGuide
 Install the given extension's API
 */
 on revIDEInstallAPI pAPIFolder, pExtensionName, pAuthor
-   
+
    local tAPIFile
    put pAPIFolder & slash & "api.lcdoc" into tAPIFile
-   
+
    # Convert the new API to a JSON array to append to API data
    local tAPIJSON
    dispatch function "revDocsFormatAPIAsJSON" to stack "revDocsParser" with pExtensionName, pAuthor, tAPIFile
@@ -4924,9 +4924,9 @@ on revIDEInstallAPI pAPIFolder, pExtensionName, pAuthor
    if tAPIJSON is empty then
       return "no documentation found"
    end if
-   
+
   revIDESetUTF8FileContents pAPIFolder & slash & "api.js", tAPIJSON
-   
+
    # Now regenerate the built APIs
    revIDERegenerateBuiltAPIs
 end revIDEInstallAPI
@@ -4940,7 +4940,7 @@ on revIDEGoToDictionaryEntry pLibrary, pTag, pType
       revIDEGenerateDictionaryHTML "api", pLibrary, pTag, pType
       launch url ("file:" & revIDEGetDictionaryUrl("api"))
    else
-      send "goToEntry pLibrary, pTag, pType" to stack revIDEPaletteToStackName("dictionary") 
+      send "goToEntry pLibrary, pTag, pType" to stack revIDEPaletteToStackName("dictionary")
    end if
    revIDEMessageSend "ideOpenPalette", "dictionary"
 end revIDEGoToDictionaryEntry
@@ -5036,18 +5036,18 @@ on revIDEPropertyChanged pObjectList
       -- from triggering an ide message.
       repeat for each line tObj in pObjectList
          put true into sObjListA[tObj]
-      end repeat  
-      
+      end repeat
+
       if "revIDEUnlockPropertyUpdates" is in the pendingMessages then
          cancel sPropertyChangedMsgID
       end if
-      
+
       -- Postpone update until sThrottleTime millisecs has passed
       send "revIDEUnlockPropertyUpdates" to me in sThrottleTime millisecs
       put the result into sPropertyChangedMsgID
       exit revIDEPropertyChanged
    end if
-   
+
    revIDESendPropertyChanged pObjectList
 end revIDEPropertyChanged
 
@@ -5067,7 +5067,7 @@ function __revIDEPropertiesInfoOfSection pObjectList, pSection
    repeat for each line tObject in pObjectList
       if not exists(tObject) then return __revIDEError("Not all objects in the list provided exist")
    end repeat
-   
+
    # Work out the type of the selected objects
    local tObjectTypeList
    put ideObjectTypesFromObjectList(pObjectList) into tObjectTypeList
@@ -5075,7 +5075,7 @@ function __revIDEPropertiesInfoOfSection pObjectList, pSection
    # Return this list of all the properties to read for the given type list
    local tProperties
    put __objectPropertiesShared(tObjectTypeList, true, pSection) into tProperties
-   
+
    # Include multiple object properties if required
    if the number of lines in pObjectList > 1 then
       if pSection is empty then
@@ -5103,16 +5103,16 @@ private on __setPropertyOfObject pObject, pProperty, pValue
    if pProperty is "customProperties" then
       put true into sLockUpdates
    end if
-   
+
    local tProperties
    put __classicObjectProperties(pObject) into tProperties
-   
+
    if tProperties["properties"][pProperty]["setter"] is not empty then
       dispatch tProperties["properties"][pProperty]["setter"] with pObject, pProperty, pValue
    else
       set the pProperty of pObject to pValue
    end if
-   
+
 end __setPropertyOfObject
 
 function ideCheckStackName pName
@@ -5127,12 +5127,12 @@ function ideCheckStackName pName
       answer error revIDELocalise("You cannot set the name of a stack to a number.")
       return false
    end if
-   if pName contains quote then 
+   if pName contains quote then
       beep
       answer error revIDELocalise("The name of the stack cannot contain quotes")
       return false
-   end if 
-   
+   end if
+
    return true
 end ideCheckStackName
 
@@ -5142,11 +5142,11 @@ on revIDEPropertySet pObjectList, pProperty, pValue, pLockUpdates
    if the number of lines in pObjectList > 1 then
       put true into tThrottlePropertyChanged
    end if
-   
+
    if tThrottlePropertyChanged or pLockUpdates then
       __LockPropertyUpdates 10
    end if
-   
+
    lock screen
    # Set stack edited before property change
    local tStacksListA, tStackShortNamesListA, tStack, tStackName
@@ -5154,17 +5154,17 @@ on revIDEPropertySet pObjectList, pProperty, pValue, pLockUpdates
       put revIDEStackOfObject(tObject) into tStack
       if not tStacksListA[tStack] then
          put true into tStacksListA[tStack]
-         
+
          # If stack name is changed, use new name when setting edited
          if tStack is tObject and pProperty is "name" then
-            
+
             if not ideCheckStackName(pValue) then
                local tOldName
                put the short name of tStack into tOldName
                set the name of tStack to tOldName
                exit revIDEPropertySet
             end if
-            
+
             put pValue into tStackName
          else
             put the short name of tStack into tStackName
@@ -5172,11 +5172,11 @@ on revIDEPropertySet pObjectList, pProperty, pValue, pLockUpdates
          put true into tStackShortNamesListA[tStackName]
       end if
    end repeat
-   
+
    repeat for each key tStackName in tStackShortNamesListA
       revIDESetEdited tStackName
    end repeat
-   
+
    # Multi-object properties require the object list to be passed
    local tMultiObjectSetter
    put sClassicObjectProperties["com.livecode.interface.MultipleObjects"]["properties"][pProperty]["setter"] into tMultiObjectSetter
@@ -5187,7 +5187,7 @@ on revIDEPropertySet pObjectList, pProperty, pValue, pLockUpdates
          __setPropertyOfObject tObject, pProperty, pValue
       end repeat
    end if
-   
+
    unlock screen
 end revIDEPropertySet
 
@@ -5388,7 +5388,7 @@ end revIDELastModifiedTimeOfFilesInFolder
 function revIDEExtensionFolders
    local tFoldersA
    put revIDESpecialFolderPath("user extensions") into tFoldersA["user"]
-   
+
    local tCount = 0
    repeat for each line tFolder in revEnvironmentExtensionsPaths()
       add 1 to tCount
@@ -5423,7 +5423,7 @@ function revIDEDefaultScript pObject, pHandler
    else
       put revIDEClassicObjectDefaultScript(tType) into tDefaultScript
    end if
-   
+
    lock screen
    lock messages
    create invisible stack "revDefaultScriptHolder"
@@ -5441,7 +5441,7 @@ function revIDEDefaultScript pObject, pHandler
    put lineOffset(" " & pHandler & " ", tHandlers) into tHandlerInfoLine
    put line tHandlerInfoLine of tHandlers into tHandlerInfo
    -- We want to include any comments before the handler declaration
-   -- so find the previous handler 
+   -- so find the previous handler
    put word 3 of tHandlerInfo into tHandlerStart
    put word 4 of tHandlerInfo into tHandlerEnd
    repeat while word 1 of line tHandlerStart of tDefaultScript is not empty
@@ -5490,7 +5490,7 @@ function revIDEScriptEditorBehavior pWhich
       case "breakpointpane"
          return tPathToBehaviors & slash & "revsebreakpointpanebehavior.livecodescript"
       case "errorspane"
-         return tPathToBehaviors & slash & "revseerrorspanebehavior.livecodescript"	
+         return tPathToBehaviors & slash & "revseerrorspanebehavior.livecodescript"
       case "filterfield"
          return tPathToBehaviors & slash & "revsefilterfieldbehavior.livecodescript"
       case "variablescheckbox"
@@ -5529,7 +5529,7 @@ function revIDEMessageBoxBehavior pWhich
       case "multiple lines card"
          return tPathToBehaviors & slash & "revmessageboxmultiplelinescardbehavior.livecodescript"
       default
-         return empty  
+         return empty
    end switch
 end revIDEMessageBoxBehavior
 
@@ -5551,17 +5551,17 @@ function revIDEAbsoluteRectOfObject pStackID, pObjectData
 end revIDEAbsoluteRectOfObject
 
 function revIDERelativeRectToAbsolute pRect, pStack
-   
+
    if the short name of pStack begins with revIDEScriptEditorPrefix() and the platform is "macos" then
       put item 1 of pRect + the effective left of pStack into item 1 of pRect
       put item 3 of pRect + the effective left of pStack into item 3 of pRect
-      
+
       put item 2 of pRect + the effective top of pStack into item 2 of pRect
       put item 4 of pRect + the effective top of pStack into item 4 of pRect
    else
       put item 1 of pRect + the left of pStack into item 1 of pRect
       put item 3 of pRect + the left of pStack into item 3 of pRect
-      
+
       put item 2 of pRect + the top of pStack into item 2 of pRect
       put item 4 of pRect + the top of pStack into item 4 of pRect
    end if
@@ -5760,7 +5760,7 @@ command CreateTemplateForControl pStack
 end CreateTemplateForControl
 
 on revIDEDataGridAction pObj, pProperty
-   switch pProperty 
+   switch pProperty
       case "row template"
          local tTemplate
          put the dgProps["row template"] of pObj into tTemplate
@@ -5779,7 +5779,7 @@ end revIDEDataGridAction
 
 local sFirstRowHeaders
 on revIDESetDataGridProperty pObj, pProperty, pValue
-   switch pProperty 
+   switch pProperty
       case "text"
          if sFirstRowHeaders[pObj] then
             set the dgText[true] of pObj to pValue
@@ -5829,7 +5829,7 @@ private function __DataGridTextProperty pObject, pProperty, @rEffective
 end __DataGridTextProperty
 
 function revIDEGetDataGridProperty pObject, pProperty, @rEffective
-   switch pProperty 
+   switch pProperty
       case "row behavior"
          local tTemplate
          put the dgProps["row template"] of pObject into tTemplate
@@ -5878,7 +5878,7 @@ on revIDESetDataGridColumns pObject, pProperty, pValue
       else
          put return & pValue[x]["name"] after tColumns
       end if
-      
+
       if pValue[x]["current"] then
          put pValue[x]["name"] into tCurrentColumn
       end if
@@ -5887,7 +5887,7 @@ on revIDESetDataGridColumns pObject, pProperty, pValue
       put pValue[1]["name"] into tCurrentColumn
    end if
    put tCurrentColumn into sCurrentColumn
-   
+
    set the dgProps["columns"] of pObject to tColumns
 end revIDESetDataGridColumns
 
@@ -5908,7 +5908,7 @@ on revIDESetDataGridColumnProperty pObject, pProperty, pValue
    if sCurrentColumn is empty then
       exit revIDESetDataGridColumnProperty
    end if
-   
+
    switch pProperty
       case "column name"
          set the dgColumnName[sCurrentColumn] of pObject to pValue
@@ -6019,7 +6019,7 @@ end revIDEGetDataGridColumnProperty
 command revIDENewDataGridColumnBehavior pObject
    local tDefault
    put the defaultStack into tDefault
-   
+
    local tTemplate, tTemplateCard, tStackWord
    put the dgProps["row template"] of pObject into tTemplate
    put wordoffset("card",tTemplate) into tStackWord
@@ -6027,18 +6027,18 @@ command revIDENewDataGridColumnBehavior pObject
    reset the templateButton
    set the visible of the templateButton to false
    set the width of the templateButton to 140
-   
+
    local tTopLeft
    put the topLeft of last group of tTemplateCard into tTopLeft
    add 100 to item 1 of tTopLeft
-   
+
    local tGroupRef
    copy group "default column template" of stack "revdatagridlibrary" to tTemplate
    put it into tGroupRef
    set the name of tGroupRef to sCurrentColumn
    set the topLeft of tGroupRef to tTopLeft
    put sCurrentColumn into field 1 of tGroupRef
-   
+
    local tStack
    put the long id of the owner of tTemplate into tStack
    set the name of the templateButton to sCurrentColumn && "Behavior"
@@ -6070,7 +6070,7 @@ command revIDENewDataGridColumnBehavior pObject
    show stack tTemplate
    set the defaultStack to tDefault
    unlock messages
-   
+
    send "resetList" to pObject
 end revIDENewDataGridColumnBehavior
 
@@ -6095,12 +6095,12 @@ on revIDESetTableProperty pObject, pProperty, pValue
                set the cREVTable["currentview"] of pObject to the text of pObject
             end if
          end if
-         
+
          # Only change the contents if this was a table or is becoming one
          if pValue or tWasTableObject then
          revDisplayFormattedData pObject
          end if
-         
+
          if pValue then
             set the vScrollbar of pObject to true
          end if
@@ -6130,12 +6130,12 @@ constant kGradientSetOrder = "type,ramp,quality,repeat,mirror,wrap"
 on revIDESetGradientProperty pObject, pProperty, pValue
    local tOldValue
    put the pProperty of pObject into tOldValue
-   
+
    if tOldValue is empty or pValue is empty then
       set the pProperty of pObject to pValue
       exit revIDESetGradientProperty
    end if
-   
+
    # Find out which keys have changed
    local tChanged
    repeat for each item tKey in kGradientSetOrder
@@ -6150,7 +6150,7 @@ on revIDESetGradientProperty pObject, pProperty, pValue
          end if
       end if
    end repeat
-   
+
    # Avoid overwriting primary and secondary gradient props
    # by setting array prop values one by one
    local tLast
@@ -6174,21 +6174,21 @@ end revIDESetGradientProperty
 private function __resolveStackFilePath pBasePath, pOtherPath
    set the itemdelimiter to "/"
    put __resolveRelativeFilenameReference(pOtherPath, item 1 to -2 of pBasePath) into pOtherPath
-   
+
    -- At this point pOtherPath should be absolute, so if its
    -- (component-wise) prefix is pBasePath we relativize again.
    local tBasePathFolder
    put item 1 to -2 of pBasePath into tBasePathFolder
    put __makePathRelative(pOtherPath, tBasePathFolder) into pOtherPath
-   
+
    return pOtherPath
 end __resolveStackFilePath
 
 private function __resolveRelativeFilenameReference pFilename, pRootFolder
    local tNewFilename
-   
+
    set the itemdelimiter to "/"
-   
+
    if not (pFilename begins with "../") then
       if pFilename begins with "/" or item 1 of pFilename contains ":" then
          return pFilename
@@ -6196,9 +6196,9 @@ private function __resolveRelativeFilenameReference pFilename, pRootFolder
          return pRootFolder & "/" & pFilename
       end if
    end if
-   
+
    put pFilename into tNewFilename
-   
+
    repeat while tNewFilename begins with "../"
       if pRootFolder is empty then
          return "out of bounds" for error
@@ -6207,7 +6207,7 @@ private function __resolveRelativeFilenameReference pFilename, pRootFolder
          delete char 1 to 3 of tNewFilename
       end if
    end repeat
-   
+
    if tNewFilename is empty then
       return pRootFolder for value
    else
@@ -6264,7 +6264,7 @@ end __makePathRelative
 command revIDESetStackFilesProperty pObject, pProperty, pValue
    local tProcessedValue
    put empty into tProcessedValue
-   
+
    -- If the stack in question has a filename then we process.
    local tBaseFilename
    put the effective filename of pObject into tBaseFilename
@@ -6273,20 +6273,20 @@ command revIDESetStackFilesProperty pObject, pProperty, pValue
          local tStackName, tStackPath
          put item 1 of tEntry into tStackName
          put item 2 to -1 of tEntry into tStackPath
-         
+
          -- Attempt to resolve the referenced stack's path relative to
          -- the base path. This will have no effect if the stack path cannot
          -- be resolved.
          local tResolvedStackPath
          put __resolveStackFilePath(tBaseFilename, tStackPath) into tStackPath
-         
+
          put tStackName & comma & tStackPath & return after tProcessedValue
       end repeat
       delete the last char of tProcessedValue
    else
       put pValue into tProcessedValue
    end if
-   
+
    -- Set the stackFile property to the processed stackFile list
    set the stackFiles of pObject to tProcessedValue
 end revIDESetStackFilesProperty
@@ -6379,27 +6379,27 @@ end __standaloneSettingsInfoFilename
 function revIDEStandaloneSettings pStack, pSection
    local tInfo
    put revIDEStandaloneSettingsInfoOfSection(pSection) into tInfo
-   
+
    return __revIDEStandaloneSettingsOfStackForExtension(pStack, tInfo)
 end revIDEStandaloneSettings
 
 function revIDEStandaloneSettingsInfoOfSection pSection
    local tStandaloneDefinitionsPath
    put revIDESpecialFolderPath("Standalone Settings Definitions") into tStandaloneDefinitionsPath
-   
+
    local tInfoA
    put __propertyDataFromInfoFile(tStandaloneDefinitionsPath & slash & __standaloneSettingsInfoFilename()) into tInfoA
-   
+
    local tOrganisedA
    put __organisePropertyInfo(tInfoA) into tOrganisedA
-   
+
    return __orderPropSubArray(tOrganisedA[pSection], true)
 end revIDEStandaloneSettingsInfoOfSection
 
 function revIDEStandaloneSettingsInfoOfExtension pKind
    local tInfoA
    put revIDEExtensionStandaloneSettingsInfo(pKind, true) into tInfoA
-   
+
    local tSectionList
    -- At the moment all per-extension standalone settings are in
    -- the 'basic' section
@@ -6410,7 +6410,7 @@ end revIDEStandaloneSettingsInfoOfExtension
 function revIDEStandaloneSettingsOfExtension pStack, pKind
    local tInfoA
    put revIDEStandaloneSettingsInfoOfExtension(pKind) into tInfoA
-   
+
    return __revIDEStandaloneSettingsOfStackForExtension(pStack, tInfoA, pKind)
 end revIDEStandaloneSettingsOfExtension
 
@@ -6421,7 +6421,7 @@ private function __revIDEStandaloneSettingsOfStackForExtension pStack, pInfoA, p
    else
       put the customProperties["cRevStandaloneSettings"] of pStack into tSettings
    end if
-   
+
    local tPropsA, tPropName
    set the itemdelimiter to ";"
    repeat for each element tGroup in pInfoA
@@ -6471,7 +6471,7 @@ end revIDEStandaloneSectionNameToIconName
 
 on revIDEOpenStack pFilePath
    local tError, tStackName
-   
+
    if there is not a file pFilePath then return __revIDEError("Specified file does not exist")
 
    put empty into tError
@@ -6485,7 +6485,7 @@ on revIDEOpenStack pFilePath
       set the cursor to 1
    else
       revIDEAddRecentStack pFilePath
-      
+
       # AL-2015-06-09: [[ Bug 14831 ]] If stack is script only, open in script editor
       if the scriptOnly of stack pFilePath then
          revIDEEditScriptOfObject the long id of stack pFilePath
@@ -6533,22 +6533,22 @@ end revIDETogglePaletteView
 function revIDEGetAllPlugins
    local tUserPlugins
    put revAbsoluteFolderListing(revEnvironmentUserPluginsPath()) into tUserPlugins
-   
+
    local tEnvironmentPlugins
    put revAbsoluteFolderListing(revEnvironmentPluginsPath()) into tEnvironmentPlugins
-   
+
    local tFinal
    put revCombineFilePaths(tUserPlugins,tEnvironmentPlugins) into tFinal
-   
+
    local tDevelopmentPlugins
    put revAbsoluteFolderListing(revEnvironmentDevelopmentPluginsPath()) into tDevelopmentPlugins
-   
+
    if tDevelopmentPlugins is not empty then
       put revCombineFilePaths(tFinal,tDevelopmentPlugins) into tFinal
    end if
    return tFinal
 end revIDEGetAllPlugins
-   
+
 on revIDEPopupContextualMenu pTargets
    dispatch "revMenubarPopupContextualMenu" to stack revIDEPaletteToStackName("menubar") with pTargets
 end revIDEPopupContextualMenu
@@ -6556,13 +6556,13 @@ end revIDEPopupContextualMenu
 local sPluginsA
 on revIDEUpdatePlugins
    global gREVStartupList, gREVShutdownlist, gREVDontLoadMenus
-   
+
    local tFinal
    put revIDEGetAllPlugins() into tFinal
-   
+
    put empty into gREVStartupList
    put empty into gREVShutdownList
-   
+
    local tPluginsA, tName
    lock messages
    repeat for each line tStack in tFinal
@@ -6588,18 +6588,18 @@ on revIDEUpdatePlugins
          end if
       end if
    end repeat
-   
+
    unlock messages
-   
+
    # Only send the plugins changed message when the details of the plugins change
    local tPluginsChanged
    put false into tPluginsChanged
    if sPluginsA is empty or tPluginsA is not sPluginsA then
       put true into tPluginsChanged
    end if
-   
+
    put tPluginsA into sPluginsA
-   
+
    if tPluginsChanged then
       ideMessageSend "idePluginsChanged"
    end if
@@ -6612,22 +6612,22 @@ end revIDEPlugins
 on revIDEOpenPlugin pName
    local tStackPath
    put sPluginsA[pName]["path"] into tStackPath
-   
+
    if there is not a stack tStackPath then
       delete variable sPluginsA[pName]
       exit revIDEOpenPlugin
    end if
-   
+
    local tMode
-   if the cREVLoadInfo["mode"] of stack tStackPath is not empty then 
+   if the cREVLoadInfo["mode"] of stack tStackPath is not empty then
       put the cREVLoadInfo["mode"] of stack tStackPath into tMode
-   else 
+   else
       put "palette" into tMode
    end if
-   
+
    if tMode is "invisible" then
       go invisible stack tStackPath
-   else 
+   else
       do "go stack" && quote &  tStackPath & quote && "as" && tMode
    end if
 end revIDEOpenPlugin
@@ -6690,7 +6690,7 @@ on revIDENewMainstack pWidth, pHeight
 
    local tToolsRight
    put the right of stack revIDEPaletteToStackName("tools") into tToolsRight
-   
+
    local tLeft, tScreenRect
    put revIDEStackScreenRect(revIDEPaletteToStackName("tools"), true) into tScreenRect
    if tToolsRight < (item 3 of tScreenRect / 2) then put tToolsRight + 20 into tLeft
@@ -6705,13 +6705,13 @@ on revIDENewMainstack pWidth, pHeight
 
    # Final items
    reset the templateStack
-   
+
    # Send the 'ideNewStack' message
    ideMessageSend "ideNewStack", it
-   
+
     # Update the active stacks
    ideMessageSend "ideActiveStacksChanged"
-   
+
    # Return the created stack long id
    return it
 end revIDENewMainstack
@@ -6728,13 +6728,13 @@ Returns: The screenLoc of the screen the stack is on
 function revIDEStackScreenLoc pStackName, pWorking
    local tScreenRect
    put revIDEStackScreenRect(pStackName, pWorking) into tScreenRect
-   
+
    local tScreenWidth
    put item 3 of tScreenRect - item 1 of tScreenRect into tScreenWidth
-   
+
    local tScreenHeight
    put item 4 of tScreenRect - item 2 of tScreenRect into tScreenHeight
-   
+
    return item 1 of tScreenRect + (tScreenWidth div 2),item 2 of tScreenRect + (tScreenHeight div 2)
 end revIDEStackScreenLoc
 
@@ -6757,7 +6757,7 @@ function revIDEStackScreenRect pStackName, pWorking
    if tRect is empty then
       return 0,0,0,0
    end if
-   
+
    return tRect
 end revIDEStackScreenRect
 
@@ -6780,7 +6780,7 @@ on revIDEActionNewMainstack pStackType
          revIDENewMainstack
       end if
    end if
-   
+
    # Return the created stack long id
    return the result
 end revIDEActionNewMainstack
@@ -6788,16 +6788,16 @@ end revIDEActionNewMainstack
 on revIDEActionNewCard
    local tFilterStack
    put the short name of the topStack into tFilterStack
-   if revFilterStacksList(tFilterStack) is empty then 
+   if revFilterStacksList(tFilterStack) is empty then
       revIDEActionNewMainstack "default"
    end if
-   set the defaultStack to the topStack 
+   set the defaultStack to the topStack
    local tCardID
    create card
    put the long id of it into tCardID
    revIDESetEdited the short name of this stack
    ideMessageSend "ideNewCard tCardID"
-   
+
    # Return the card id
    return tCardID
 end revIDEActionNewCard
@@ -6810,7 +6810,7 @@ on revIDEDeleteCard pLongID
    answer error "Are you sure you want to delete" && the long name of pLongID & "?" with "Yes" or "No"
    if it is not "yes" then exit revIDEDeleteCard
    delete pLongID
-   
+
   revIDESetEdited the short name of ideStackOfObject(pLongID)
 end revIDEDeleteCard
 
@@ -6857,13 +6857,13 @@ Tags: ide
 on revIDENewScriptOnlyStackWithScript pName, pScript
    if pName is empty then return __revIDEError("Script only stacks cannot be created without a name") for error
    if there is a stack pName then return "A stack with that name already exists" for error
-   
+
    local tLongID
    create script only stack pName
    put it into tLongID
-   
+
    set the script of tLongID to pScript
-   
+
    edit the script of tLongID
    return tLongID for value
 end revIDENewScriptOnlyStackWithScript
@@ -6905,10 +6905,10 @@ Tags: ide
 on revIDENewSubstackOfStack pStack
    lock screen
    if the mainStack of stack pStack is not pStack then put the mainStack of stack pStack into pStack
-   
+
    # Create a new stack
    revIDENewMainstack
-   
+
    # Make the new stack a substack of the current stack
    set the mainStack of the topStack to pStack
    unlock screen
@@ -6917,15 +6917,15 @@ end revIDENewSubstackOfStack
 on revIDEActionOpenStack
    # Popup a file choose
    revIDEAnswerFileWithTypes "stack,all"
-   
+
    # Get the path of to the file
    local tStackFilePaths
    put the result into tStackFilePaths
-   
+
    repeat for each line tStackFilePath in tStackFilePaths
       # Check the stack exists
       if there is not a file tStackFilePath then exit revIDEActionOpenStack
-      
+
       # Open the stack
       revIDEOpenStack tStackFilePath
    end repeat
@@ -6963,10 +6963,10 @@ end revIDECloseStack
 private on __ideRemoveFromMemory pStackID
    # OK-2008-08-18: Bug 6932 - Update the script editor here as messages is locked when deleting the stack
    revIDEHandleObjectDeleted pStackID
-   
+
    local tSubstacks
    put the subStacks of stack pStackID into tSubstacks
-   
+
    lock messages -- prevent user stack saving during the close, erasing substacks
    repeat for each line tSubStack in tSubstacks
       close stack tSubStack
@@ -6978,19 +6978,19 @@ end __ideRemoveFromMemory
 on revIDERemoveFromMemory pStackID
    local tMainstack
    put the mainStack of stack pStackID into tMainstack
-   
+
    local tSubstacks
    put the subStacks of stack pStackID into tSubstacks
-   
-   local tStacks 
+
+   local tStacks
    put tMainStack & cr & tSubstacks into tStacks
    answer warning "Really remove the stack file" && pStackID && "from memory?" & cr & "Any changes made since saving will be lost from the following stacks:" & cr & cr & tStacks with "Cancel" or "OK" as sheet
-   if it is "Cancel" then 
+   if it is "Cancel" then
       exit revIDERemoveFromMemory
    end if
-   
+
    __ideRemoveFromMemory the long id of stack tMainstack
-   
+
    # Send the 'ideDestroyStack' message
    ideMessageSend "ideDestroyStack", pStackID
 end revIDERemoveFromMemory
@@ -7026,13 +7026,13 @@ on revIDEDeleteSubstack pSubstackID
       # Not a substack
       exit revIDEDeleteSubstack
    end if
-   
+
    if revSaveCheck(pSubstackID) is not false then
       answer warning "Really remove the stack file" && pSubstackID && "from memory?" & cr & "Any changes made since saving will be lost" with "Cancel" or "OK" as sheet
-      if it is "Cancel" then 
+      if it is "Cancel" then
          exit revIDEDeleteSubstack
       end if
-      
+
       # Detach from mainstack
       local tStackName
       lock messages
@@ -7041,7 +7041,7 @@ on revIDEDeleteSubstack pSubstackID
       unlock messages
       # Close and remove from memory
       __ideRemoveFromMemory the long id of stack tStackName
-      
+
       # Send the 'ideDestroyStack' message
       ideMessageSend "ideDestroyStack", pSubstackID
    end if
@@ -7086,10 +7086,10 @@ function revIDEAcceptedTypes pType
       case "image"
          return "jpg,jpeg,jfif,gif,png,bitmap,bmp,dib,vga,pict,pict2,pic,svg"
       case "video"
-         put "mp4,mpg,mpeg,mov" into tTypes 
+         put "mp4,mpg,mpeg,mov" into tTypes
          if the platform is "win32" then
             put ",wmv,avi" after tTypes
-         end if 
+         end if
          return tTypes
       case "audio"
          put "au,aiff,aifc,aif,wav,mp3,aac,m4a" into tTypes
@@ -7113,13 +7113,13 @@ end revIDEAcceptedTypes
 
 on revIDEActionImportControl pType, pReferenced
    if pType is not among the items of revIDEImportableControls() then exit revIDEActionImportControl
-   
+
    # Ask the user to pick a file of the given type
    revIDEAnswerFile pType
-   
+
    # User has not chosen a file
    if the result is "cancel" then exit revIDEActionImportControl
-   
+
    local tFiles
    put the result into tFiles
    lock screen
@@ -7139,15 +7139,15 @@ end revIDEActionImportControl
 
 on revIDEActionImportControlFromFolder pType, pReference
    answer folder revIDELocalise("Please select a folder to import from")
-   
+
    if the result is "cancel" then exit revIDEActionImportControlFromFolder
    local tFolderPath
    put it into tFolderPath
-   
+
    local tAcceptedTypes
    put revIDEAcceptedTypes(pType) into tAcceptedTypes
    replace "," with "." in tAcceptedTypes
-   
+
    # Store the current default folder
    revIDEPushDefaultFolder tFolderPath
    set the itemdel to "."
@@ -7156,24 +7156,24 @@ on revIDEActionImportControlFromFolder pType, pReference
    repeat for each line tFile in the files
       if char 1 of tFile is "." then next repeat
       if the last item of tFile is not among the items of tAcceptedTypes then next repeat
-      
+
       revIDEImportControl pType, tFolderPath & slash & tFile, pReference
    end repeat
    unlock messages
    unlock screen
-   
-   # Restore the previous defaul folder 
+
+   # Restore the previous defaul folder
    revIDEPopDefaultFolder
 end revIDEActionImportControlFromFolder
 
 on revIDEImportControl pType, pFileName, pReferenced
    if pType is not among the items of revIDEImportableControls() then return __revIDEError("Cannot import that type of control")
    if there is not a file pFileName then exit revIDEImportControl
-   
+
    local tTargetStack, tCreatedControlLocation
    put the long ID of the topstack into tTargetStack
    put the loc of card 1 of the topstack into tCreatedControlLocation
-   
+
    local tCreatedControlID, tFileContents
    lock screen
    lock messages
@@ -7230,7 +7230,7 @@ on revIDEImportControl pType, pFileName, pReferenced
          select tCreatedControlID
          break
    end switch
-   
+
    set the itemdel to slash
    set the name of tCreatedControlID to the last item of pFileName
    unlock messages
@@ -7240,7 +7240,7 @@ end revIDEImportControl
 
 on revIDEImportSnapshot pScope, pObjectID
    if pScope is not among the items of "screen,object" then put "screen" into pScope
-   
+
    set the defaultstack to the topstack
    switch pScope
       case "screen"
@@ -7248,15 +7248,15 @@ on revIDEImportSnapshot pScope, pObjectID
          break
       case "object"
          if pObjectID is empty then exit revIDEImportSnapshot
-         
-         if word 1 of pObjectID is "stack" then 
+
+         if word 1 of pObjectID is "stack" then
             import snapshot from rect (the rect of pObjectID)
          else
             import snapshot from the selObj
          end if
          select the last image
          break
-   end switch 
+   end switch
 end revIDEImportSnapshot
 
 /*
@@ -7343,7 +7343,7 @@ pTypes: a comma delimited list of types, which can be any of the following:
 
 pInstructions (optional string): the text to use as the file selection prompt.
 pBasePath (optional string): the default path to open the dialog at.
-pSingleFile (optional boolean): whether to restrict the selection to a single file or not 
+pSingleFile (optional boolean): whether to restrict the selection to a single file or not
 */
 on revIDEAnswerFileWithTypes pTypes, pInstructions, pBasePath, pSingleFile
    local tTypesA
@@ -7355,7 +7355,7 @@ on revIDEAnswerFileWithTypes pTypes, pInstructions, pBasePath, pSingleFile
    end if
    revIDEAnswerFile "", pInstructions, pBasePath, tTypesA, pSingleFile
 end revIDEAnswerFileWithTypes
-   
+
 private function __answerGetTypeString pType
    local tTagString
    switch pType
@@ -7385,16 +7385,16 @@ private function __answerGetTypeString pType
          put revIDELocalise("All Files") into tTagString
          break
    end switch
-   
+
    return tTagString & "|" & revIDEAcceptedTypes(pType) & "|"
 end __answerGetTypeString
 
 private function __answerGetDefaultInstructions pType
    switch pType
       case "stack"
-         return revIDELocalise("Please select a LiveCode stack") 
+         return revIDELocalise("Please select an OpenXTalk stack") 
       case "image"
-         return revIDELocalise("Please select an image") 
+         return revIDELocalise("Please select an image")
       case "video"
          return revIDELocalise("Please select a video")
       case "text"
@@ -7418,14 +7418,14 @@ on revIDEAnswerFile pType, pInstructions, pBasePath, pTypesA, pSingleFile
    else
       put pInstructions into tInstructions
    end if
-   
+
    local tTypesA
    if pTypesA is empty then
       put __answerGetTypeString(pType) into tTypesA[1]
    else
       put pTypesA into tTypesA
    end if
-   
+
    # Build the answer string from the various components
    local tAnswerString
    put "answer file" into tAnswerString
@@ -7433,14 +7433,14 @@ on revIDEAnswerFile pType, pInstructions, pBasePath, pTypesA, pSingleFile
       put "s" after tAnswerString
    end if
    put " pInstructions" after tAnswerString
-   
+
    # If there is a tutorial in progress, open dialog browsing tutorial resource folder
    local tTutorial
    put revIDETutorialInProgress() into tTutorial
    if tTutorial is not empty then
       put " with" && quote & revIDETutorialResourcePath(tTutorial) & quote after tAnswerString
    end if
-   
+
    # Add any types defined in the type array
    local tTypeString
    repeat with x  = 1 to the number of elements of tTypesA
@@ -7451,10 +7451,10 @@ on revIDEAnswerFile pType, pInstructions, pBasePath, pTypesA, pSingleFile
       end if
    end repeat
    put tTypeString after tAnswerString
-   
+
    # Do the answer file
    do tAnswerString
-   
+
    if the result is "cancel" then
       return "cancel"
    else
@@ -7490,7 +7490,7 @@ function revIDEStackFileVersion pStackFile
    close file pStackFile
    if it begins with "REVO" then
       delete byte 1 to 4 of it
-      
+
       if it mod 100 is 0 then
          return it div 1000 & "." & it mod 1000 div 100
       else
@@ -7552,9 +7552,9 @@ command revIDESetEdited pStackName
          the cIDETransient of stack pStackName then
       exit revIDESetEdited
    end if
-   
+
    # Don't set edited on a stack if it is currently saving
-   if pStackName is "revSaving" or the mode of stack "revSaving" is 0 then 
+   if pStackName is "revSaving" or the mode of stack "revSaving" is 0 then
       put true into sStackEdited[pStackName]
    end if
 end revIDESetEdited
@@ -7570,80 +7570,80 @@ function revIDEStackIsEdited pStackName
       if not gRevDevelopment then
          return false
       end if
-      
+
       # Ignore status of IDE stacks that are not toplevel
       if the mode of stack pStackName is not 1 then
          return false
       end if
    end if
-   
+
    return sStackEdited[pStackName] is true
 end revIDEStackIsEdited
 
 on revIDESaveStack pStackID
    local tDefaultStack
    put the defaultStack into tDefaultStack
-   
+
    local tStackName
    put the short name of pStackID into tStackName
-   
+
    # Old style message handling. Queue of stacks to save are being notified to save
    global gREVMessageDispatch
    repeat for each line tStack in gREVMessageDispatch["revSaveStackRequest"]
       send "revSaveStackRequest" to this card of stack tStack
    end repeat
-   
+
    # Check if the stack has a filename. IF not, redirect to save as
    if the effective filename of stack tStackName is empty then
       revIDEActionSaveStackAs the long ID of stack tStackName
       exit revIDESaveStack
    end if
-   
+
    set the defaultStack to "revSaving"
-   
+
    local tMainStack
    put the mainStack of stack tStackName into tMainStack
-   
+
    local tSubStacks
    put the substacks of stack tMainStack into tSubStacks
-   
+
    local tSubTabbed
    repeat for each line tStack in tSubStacks
       put tab & tStack & return after tSubTabbed
    end repeat
    delete last char of tSubTabbed
    put tSubTabbed into tSubStacks
-   
+
    local tStacksList
    local tFinal
    put tStackName into tFinal
    put the mainstack of stack tStackName into tStacksList
-   
+
    local tResultLog
-   
+
    set the visible of stack "revSaving" to false
    palette "revSaving"
    set the cSavingStack of card 1 of stack "revSaving" to tStackName
    show stack "revSaving"
-   
+
    local tSelectedList
    put (the selObj) into tSelectedList
    select empty
    compact stack tStackName
-   
+
    -- Dispatch the pre-save hook, just before we lock messages and do the save.
    dispatch "revHookPreSaveStack" to me with pStackID
-   
+
    lock messages
-   
+
    local tStackFilename
    put the effective filename of stack tStackName into tStackFilename
-   
+
    local tStackFileVersion
-   
+
    if revIDEGetPreference("cPreserveStackVersion") is true and the scriptOnly of stack tMainStack is false then
       put revIDEStackFileVersion(tStackFilename) into tStackFileVersion
-      
+
       local tFileVersions
       put tStackFileVersion into tFileVersions[1]
       put the minStackFileVersion of stack tStackName into tFileVersions[2]
@@ -7661,10 +7661,10 @@ on revIDESaveStack pStackID
          end if
       end if
    end if
-   
+
    local tStackFileIsScriptOnly
    put revIDEStackFileIsScriptOnly(tStackFilename) into tStackFileIsScriptOnly
-   
+
    if the scriptOnly of stack tMainStack and not tStackFileIsScriptOnly then
       answer revIDELocalise("Saving in script only format will result in loss of data as only the script will be saved." && \
             "Are you sure you wish to continue?") with revIDELocalise("No") and revIDELocalise("Yes")
@@ -7674,24 +7674,24 @@ on revIDESaveStack pStackID
          return "Cancelled"
       end if
    end if
-   
+
    if the scaleFactor of stack tStackName is a number then
       set the cREVGeneral["scalefactor"] of stack tStackName to the scalefactor of stack tStackName
    end if
-   
+
    local tOldStackFileType
    put the stackFileType into tOldStackFileType
    if the cPreserveStackCreator of stack "revPreferences" is true then
       local tOldFolder
       put the folder into tOldFolder
-      
+
       if there is a file tStackFilename then
          set the itemDelimiter to "/"
          set the folder to item 1 to -2 of tStackFilename
-         
+
          local tStackFileDetails
          put the detailed files into tStackFileDetails
-         
+
          local tStackFileLeaf
          put the urlEncode of the last item of tStackFilename into tStackFileLeaf
          set the itemDelimiter to comma
@@ -7700,16 +7700,16 @@ on revIDESaveStack pStackID
             set the stackFileType to char 1 to 4 of it & "RSTK"
          end if
       end if
-      
+
       set the folder to tOldFolder
    end if
-   
+
    local tSaveResult
-   
+
    -- Synthesize a "saveStackRequest" message
    if ideDispatchSaveStackRequest(tStackName) is "handled" then
       put empty into tSaveResult
-      
+
    else
       if tStackFileVersion is not empty then
          save stack tStackName with format tStackFileVersion
@@ -7718,13 +7718,13 @@ on revIDESaveStack pStackID
       end if
       put the result into tSaveResult
    end if
-   
+
    ## MJ - 17/07/2006 : Bug 3722, it appears these two lines here override the result...
    ## Hence the introduction of the above variable.
    set the stackFileType to tOldStackFileType
-   
+
    unlock messages
-   
+
    local tResult
    if tSaveResult is not empty then
       put tSaveResult & return after tResultLog
@@ -7735,9 +7735,9 @@ on revIDESaveStack pStackID
    else
       -- Dispatch the post-save hook, straight after the save, but only if it succeeded.
       dispatch "revHookPostSaveStack" to me with pStackID
-      
+
       revIDESetUnedited tStackName
-      
+
       local tMainStackList
       put the mainStack of stack tStackName into tMainStackList
       put return & the substacks of stack tStackName after tMainStackList
@@ -7747,17 +7747,17 @@ on revIDESaveStack pStackID
       end repeat
       revUpdateRecentFiles tStackName
    end if
-   
+
    repeat for each line tSelectedObject in tSelectedList
       set the selected of tSelectedObject to true
    end repeat
-   
+
    delete last char of tResultLog
    put revIDELocalise("Save complete - click to continue") into line -1 of field 1 of stack "revSaving"
-   
+
    -- MW-2012-09-17: [[ Bug 10388 ]] Flush events to stop bunching.
    get flushEvents("all")
-   
+
    -- improve speed KM oct 07 4932
    local tTime
    put the milliseconds into tTime
@@ -7765,16 +7765,16 @@ on revIDESaveStack pStackID
       if the milliseconds - tTime > 400 then exit repeat
       if the mouseClick then exit repeat
    end repeat
-   
+
    close stack "revSaving"
    set the defaultStack to tStackName
-   
+
    return tResultLog
 end revIDESaveStack
 
 on revIDERevertToSavedStack pStackID
    set the defaultStack to pStackID
-   
+
    local tLocalData
    put the topStack into tLocalData[1]
    answer warning revIDELocalise("Are you sure you want to revert to the last version saved?  All changes to stack %1 will be lost.", tLocalData)  with revIdeLocalise("No") or revIdeLocalise("Yes")
@@ -7800,7 +7800,7 @@ on revIDESaveStackAs pStackID, pFileName, pVersion
    else
       save pStackID as pFileName with newest format
    end if
-   
+
    local tShortName, tResult
    put the short name of pStackID into tShortName
    put the result into tResult
@@ -7811,7 +7811,7 @@ on revIDESaveStackAs pStackID, pFileName, pVersion
       close stack "revSaving"
    else
       revIDESetUnedited tShortName
-      
+
       local tMainStackList
       put the mainStack of pStackID into tMainStackList
       put return & the substacks of pStackID after tMainStackList
@@ -7852,12 +7852,12 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
    // MM-2012-03-09: Added new 5.5 stack file format to drop down.
    local tStackFileType
    local tStackFileIsScriptOnly = true
-   
-   if there is a file the filename of stack tShortName then 
+
+   if there is a file the filename of stack tShortName then
       put revStackFileVersion(the filename of stack tShortName) into tStackFileType
       put revIDEStackFileIsScriptOnly(the filename of stack tShortName) into tStackFileIsScriptOnly
    end if
-   
+
    # Prepare substitutions for localisation
    local tSubstitutions
    put tShortName into tSubstitutions[1]
@@ -7869,9 +7869,9 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
    put (revIDELocalise("Legacy LiveCode Stack (5.5)") & "|livecode,rev|RSTK") into tStack55Filter
    put (revIDELocalise("Legacy LiveCode Stack (7.0)") & "|livecode,rev|RSTK") into tStack70Filter
    put (revIDELocalise("Legacy LiveCode Stack (8.0)") & "|livecode,rev|RSTK") into tStack80Filter
-   
+
    local tVersion
-   switch 
+   switch
       case the scriptOnly of stack tShortName
          put "script" after tStackName
          ask file revIDELocalise("Save script only stack %1 as:", tSubstitutions) with tStackName with type (revIDELocalise("LiveCode Script Only Stack") & "|livecodescript|RSTK")
@@ -7896,7 +7896,7 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
          break
    end switch
    put the result into tVersion
-   
+
    switch tVersion
       case revIDELocalise("Legacy LiveCode Stack (8.0)")
          put 8.0 into tVersion
@@ -7917,13 +7917,13 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
          put empty into tVersion
          break
    end switch
-   
+
    # User cancelled the the ask dialog
    if it is empty then
       revIDESetEdited tShortName
       return "Cancelled"
    end if
-   
+
    # MacOS Auotmatically appends the filetype to the filename
    local tFilePath
    if the platform is not "MacOS" and not (it ends with ".rev" or it ends with ".livecode" or it ends with ".livecodescript") then
@@ -7933,7 +7933,7 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
       end if
    end if
    put it into tFilePath
-   
+
    local tFileVersions
    put tVersion into tFileVersions[1]
    put the minStackFileVersion of stack tShortName into tFileVersions[2]
@@ -7948,7 +7948,7 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
          put tFileVersions[2] into tVersion
       end if
    end if
-   
+
    # Display warning if user has not selected the latest file format
    if the scriptOnly of stack tShortName and not tStackFileIsScriptOnly then
       answer revIDELocalise("Saving in script only format will result in loss of data as only" & \
@@ -7958,7 +7958,7 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
          return "Cancelled"
       end if
    end if
-   
+
    # Window and Mac automatically present overwrite dialog
    if the platform is not in "Win32,MacOS" and there is a file tFilePath then
       answer warning revIDELocalise("File exists. Overwrite?") with revIDELocalise("Cancel") or revIDELocalise("OK")
@@ -8053,7 +8053,7 @@ on revIDEPrintField pFieldID
    else
       set the printTitle to tStackName
    end if
-   
+
    revShowPrintDialog false,true
    revPrintField line 1 of pFieldID
 end revIDEPrintField
@@ -8107,13 +8107,13 @@ on revIDECut
    if the selectedField is not empty and the lockText of the selectedField then
       exit revIDECut
    end if
-   
+
    lock screen
-   
+
    if the selectedImage is not empty then
       # If the there is a selection in an image using the image selection tool
       # Then make sure no text is selected before doing the cut
-      if the selectedText is not empty then 
+      if the selectedText is not empty then
          lock messages
          select empty
          unlock messages
@@ -8123,14 +8123,14 @@ on revIDECut
       unlock screen
       exit revIDECut
    end if
-   
+
    # Ensure the user is aware of the consequences of the cut wrt groups
    if revCheckGroupDelete() then
       cut
    end if
-   
+
    unlock screen
-   
+
    ideMessageSend "ideSelectedObjectChanged"
 end revIDECut
 
@@ -8174,8 +8174,8 @@ on revIDEPaste
       beep
       exit revIDEPaste
    end if
-   
-   
+
+
    # If we have image data in the clipboard but there is no image selection
    # the create a new image object and set the imageData
    if the clipBoard is "image" and the selectedImage is empty then
@@ -8198,7 +8198,7 @@ on revIDEPaste
       unlock screen
       lock messages
    end if
-   
+
    # If objects have been pasted, assign them IDs for geometry caching
    if the clipBoard is "objects" or tObjects then
       local tMilliseconds
@@ -8209,7 +8209,7 @@ on revIDEPaste
       end repeat
    end if
    unlock messages
-   
+
    # Pasting an object will cause the selection to change
    if the clipboard is "objects" or tObjects then
       ideMessageSend "ideSelectedObjectChanged"
@@ -8220,15 +8220,15 @@ on revIDEPasteOntoStack pStack
    if not pStack begins with "stack" then
       exit revIDEPasteOntoStack
    end if
-   
+
    lock screen
    lock messages
    set the defaultStack to pStack
    paste
-   
+
    local tSelObj
    put the selobj into tSelObj
-   
+
    local tMessage
    if tSelObj is empty then
       put the long id of this card into tSelObj
@@ -8238,7 +8238,7 @@ on revIDEPasteOntoStack pStack
    end if
    unlock messages
    unlock screen
-   
+
    repeat for each line tObj in tSelObj
       revIDEMessageSend tMessage, tObj
    end repeat
@@ -8263,28 +8263,28 @@ function revIDECheckClear pObjectList
       end if
       if word 1 of tControl is "group" and the dgProps["control type"] of tControl is "Data Grid" then
          answer warning "Would you like to delete the record template associated with this data grid? This action cannot be undone." with "Yes" or "No"
-         if it is "Yes" then 
+         if it is "Yes" then
             local tTemplate
             put the dgProps["row template"] of tControl into tTemplate
-            
+
             local tCardWord
             put wordoffset("card",tTemplate) into tCardWord
-            
+
             local tTemplateCard
             put word tCardWord to -1 of tTemplate into tTemplateCard
-            
+
             local tStackWord
             put wordoffset("stack",tTemplate) into tStackWord
-            
+
             local tTemplateStack
             put word tStackWord to -1 of tTemplate into tTemplateStack
             if the number of cards in stack tTemplateStack is 2 then delete stack tTemplateStack
-            else 
+            else
                delete tTemplateCard
             end if
          end if
       end if
-      
+
       put the name of tControl & cr after tNames
    end repeat
    delete last char of tNames
@@ -8302,24 +8302,24 @@ on revIDEActionClear
       delete
       exit revIDEActionClear
    end if
-   
+
    # Can't clear locked text
    if the selectedField is not empty and the lockText of the selectedField then
       exit revIDEActionClear
    end if
-   
+
    # Otherwise delete objects or text
    set the defaultStack to the topStack
    local tSelObj
    put the selobj into tSelObj
-   
+
    delete
-   
+
    unlock messages
    repeat for each line tObj in tSelObj
       revIDEMessageSend "ideControlDeleted", tObj
    end repeat
-   
+
    ideMessageSend "ideSelectedObjectChanged"
    unlock screen
 end revIDEActionClear
@@ -8328,7 +8328,7 @@ on revIDEActionDuplicate
    lock screen
    if the selObj is not empty then
       set the defaultStack to revIDEStackOfObject(line 1 of (the selobj))
-      
+
       # OK-2007-07-31 : Bug 4917. Instead of assuming that the duplicated controls will have the highest layer
       # numbers, we make certain that we select the correct objects by saving a list of each newly created control
       local tCreatedObjects, tID
@@ -8340,7 +8340,7 @@ on revIDEActionDuplicate
          else
             put return & the long id of it after tCreatedObjects
          end if
-         
+
          if the right of last control > the right of this cd or the bottom of last control > the bottom of this cd then
             set the topLeft of the last control to 10, 10
          end if
@@ -8472,7 +8472,7 @@ private function ideUserCanStyleText pObject
          return true
       end if
    end if
-   
+
    return false
 end ideUserCanStyleText
 
@@ -8484,9 +8484,9 @@ on ideActionStyleText pWhich, pValue
    else if the selectedObject is not empty then
       put revIDESelectedObjects() into tSelectedObjects
    end if
-   
+
    put the selectedChunk into tSelectedChunk
-   
+
    local tTargetStack, tIDEStack
    put revIDEStackOfObject(line 1 of tSelectedObjects) into tTargetStack
    put revIDEStackIsIDEStack(tTargetStack) into tIDEStack
@@ -8502,11 +8502,11 @@ end ideActionStyleText
 
 on ideStyleText pSelectedChunk, pSelectedObject, pIsField, pWhich, pValue
    local tSelectedObject, tSelectedChunk, tTarget, tTargetStack, tFieldVScrollPosition, tFieldHScrollPosition,
-   
+
    if pSelectedChunk is empty and pSelectedObject is empty then
       exit ideStyleText
    end if
-   
+
    if pIsField then
       put the vScroll of pSelectedObject into tFieldVScrollPosition
       put the hScroll of pSelectedObject into tFieldHScrollPosition
@@ -8518,8 +8518,8 @@ on ideStyleText pSelectedChunk, pSelectedObject, pIsField, pWhich, pValue
       put the long ID of pSelectedObject into tSelectedObject
       put tSelectedObject into tTarget
    end if
-   
-   switch pWhich 
+
+   switch pWhich
       case "plain"
          set the textStyle of tTarget to empty
          break
@@ -8545,7 +8545,7 @@ on ideStyleText pSelectedChunk, pSelectedObject, pIsField, pWhich, pValue
 
          if pWhich is "superscript" then put -4 into tTextShiftAmount
          else put 4 into tTextShiftAmount
-         if the textShift of tTarget is a number AND the textShift of tTarget is not 0 then 
+         if the textShift of tTarget is a number AND the textShift of tTarget is not 0 then
             put 0 into tTextShiftAmount
          end if
 
@@ -8580,22 +8580,22 @@ on ideStyleText pSelectedChunk, pSelectedObject, pIsField, pWhich, pValue
             local tStartChar, tEndChar, tStartPara, tEndPara, tParaFirstChar, tParaLastChar
             put word 2 of pSelectedChunk into tStartChar
             put word 4 of pSelectedChunk into tEndChar
-            
+
             put the lineIndex of char tStartChar of tTarget into tStartPara
             put the lineIndex of char tEndChar of tTarget into tEndPara
-            
+
             repeat with x = tStartPara to tEndPara
                put the charindex of line x of tTarget into tParaFirstChar
                put the charindex of line x of tTarget + the length of line x of tTarget - 1 into tParaLastChar
                set the textAlign of char tParaFirstChar to tParaLastChar of tTarget to pValue
             end repeat
-            
+
          else
             set textAlign of tTarget to pValue
          end if
          break
    end switch
-   
+
    if pIsField then
       set the vScroll of pSelectedObject to tFieldVScrollPosition
       set the hScroll of pSelectedObject to tFieldHScrollPosition
@@ -8660,7 +8660,7 @@ end revIDESetTextAlign
 
 on revIDEActionClearAllBreakpoints
    answer warning "Really clear all breakpoints from all open stacks?  This operation cannot be undone." with "Don't Clear" or "Clear"
-   if it is "Clear" then 
+   if it is "Clear" then
       revDebuggerClearAllBreakpoints
    end if
 end revIDEActionClearAllBreakpoints
@@ -8692,7 +8692,7 @@ on revIDEToggle pProperty
       case "Suppress Messages"
          global gRevSuppressMessages
          put "suppressMessages" into tToggleMessage
-         
+
          local tLine
          if not gREVSuppressMessages then
             put true into gREVSuppressMessages
@@ -8835,10 +8835,10 @@ on revIDEToggleShowIDEStacksInLists
    global gREvShowStacks
    lock screen
    set the hilite of button "show revolution stacks" of card "general" of stack "revPreferencesGUI" to not gREVShowStacks
-   
+
    local tOpenStacks
    put the openStacks into tOpenStacks
-   
+
    local tFrontStack
    put empty into tFrontStack
    repeat for each line tStack in tOpenStacks
@@ -8856,7 +8856,7 @@ on revIDEToggleShowIDEStacksInLists
    end if
    send "revToggleShowStacks" to button "show revolution stacks" of card "general" of stack "revPreferencesGUI"
    unlock screen
-   
+
    if tBringToFront then
       lock messages
       switch the mode of stack tFrontStack
@@ -8868,7 +8868,7 @@ on revIDEToggleShowIDEStacksInLists
             modeless tFrontStack
             break
       end switch
-      unlock messages 
+      unlock messages
    end if
 end revIDEToggleShowIDEStacksInLists
 
@@ -9052,7 +9052,7 @@ on revIDEEditImage pImages
    end if
    local tImageEditor
    put revIDEGetPreference("cEditorPath") into tImageEditor
-   
+
    local tAppExists
    put false into tAppExists
    if there is a file tImageEditor then
@@ -9060,7 +9060,7 @@ on revIDEEditImage pImages
    else if the platform is "macos" and there is a folder tImageEditor then
       put true into tAppExists
    end if
-   
+
    if tImageEditor is empty or not tAppExists then
       answer warning "You haven't selected an external image editor application, or I couldn't find the editor selected.  Would you like to select one?  (Note the editor you select must be able to handle PNG format images.)" with "Cancel" or "Select now"
       if it is "Cancel" then exit revIDEEditImage
@@ -9073,8 +9073,8 @@ on revIDEEditImage pImages
          revIDESetPreference "cEditorPath", tImageEditor
       end if
    end if
-   
-   set the defaultStack to the topStack	
+
+   set the defaultStack to the topStack
 
    local tNumber, tImagePath
    repeat for each line tImage in pImages
@@ -9084,7 +9084,7 @@ on revIDEEditImage pImages
          local tEditFileName
          put true into tEditFileName
       else
-         local tReturn 
+         local tReturn
          put the fileType into tReturn
          set the fileType to "PNGf????"
          try
@@ -9097,8 +9097,8 @@ on revIDEEditImage pImages
          set the fileType to tReturn
          put the directory & "/" & ("temp" & tNumber & ".png") into tImagePath
       end if
-      
-      if tImageEditor is among the lines of the openProcesses then 
+
+      if tImageEditor is among the lines of the openProcesses then
          kill process tImageEditor
       end if
       launch tImagePath with tImageEditor
@@ -9107,17 +9107,17 @@ on revIDEEditImage pImages
          exit revIDEEditImage
       end if
    end repeat
-   
-   if tEditFileName then  
+
+   if tEditFileName then
       answer "Now launching image editor.  Use the editor to make changes to the image, then save the image and close the editor."
-      else 
+      else
          answer "Now launching image editor.  Use the editor to make changes to the image, then save the image and close the editor.  Then click Update to update the image." with "Cancel" or "Update"
       end if
-      
+
       if it is "OK" then
          repeat for each line tImage in pImages
             put the number of tImage into tNumber
-            
+
             local tFileName
             put the fileName of image tNumber into tFileName
             set the fileName of image tNumber to empty
@@ -9144,10 +9144,10 @@ on revIDEToggleMagnifyOfImage pImage
    if word 1 of pImage is not "image" then
       exit revIDEToggleMagnifyOfImage
    end if
-   
+
    set the magnify of pImage to not (the magnify of pImage)
    if the magnify of pImage then
-      if the tool is "pointer tool" or the tool is "browse tool" then 
+      if the tool is "pointer tool" or the tool is "browse tool" then
          revIDESetTool "select tool"
       end if
    end if
@@ -9158,7 +9158,7 @@ on revIDEMakeImageOriginalSize pImage
    if word 1 of pImage is not "image" then
       exit revIDEMakeImageOriginalSize
    end if
-   
+
    set the width of pImage to the formattedWidth of pImage
    set the height of pImage to the formattedHeight of pImage
 end revIDEMakeImageOriginalSize
@@ -9192,7 +9192,7 @@ on revIDEToggleLockTextOfField pField
    if word 1 of pField is not "field" then
       exit revIDEToggleLockTextOfField
    end if
-   
+
    set the lockText of pField to not (the lockText of pField)
 end revIDEToggleLockTextOfField
 
@@ -9201,7 +9201,7 @@ on revIDEToggleTraversalOnOfField pField
    if word 1 of pField is not "field" then
       exit revIDEToggleTraversalOnOfField
    end if
-   
+
    set the traversalOn of pField to not (the traversalOn of pField)
 end revIDEToggleTraversalOnOfField
 
@@ -9210,8 +9210,8 @@ on revIDEStartPlayingPlayer pPlayer
    if word 1 of pPlayer is not "player" then
       exit revIDEStartPlayingPlayer
    end if
-   
-   start playing pPlayer 
+
+   start playing pPlayer
 end revIDEStartPlayingPlayer
 
 on revIDEStopPlayingPlayer pPlayer
@@ -9219,8 +9219,8 @@ on revIDEStopPlayingPlayer pPlayer
    if word 1 of pPlayer is not "player" then
       exit revIDEStopPlayingPlayer
    end if
-   
-   stop playing pPlayer 
+
+   stop playing pPlayer
 end revIDEStopPlayingPlayer
 
 on revIDETogglePausedOfPlayer pPlayer
@@ -9236,7 +9236,7 @@ on revIDESendMessageToObject pMessage, pTarget
    # Make sure message is not handled by a frontscript
    local tScriptsList
    put the frontScripts into tScriptsList
-   
+
    local tRemoveFrontList
    repeat for each line tScript in tScriptsList
       # AL-2015-07-28: [[ Bug 14971 ]] Don't remove the debugger from the frontscripts when sending message
@@ -9250,8 +9250,8 @@ on revIDESendMessageToObject pMessage, pTarget
       end if
    end repeat
 
-   send pMessage to pTarget 
-   
+   send pMessage to pTarget
+
    # Restore frontscripts
    repeat for each line tScript in tRemoveFrontList
       insert script of tScript into front
@@ -9311,7 +9311,7 @@ function revIDEAvailableWidgets
          next repeat
       end if
       put tTypeID into tWidgetsA[tTitle]["kind"]
-   end repeat 
+   end repeat
    return tWidgetsA
 end revIDEAvailableWidgets
 
@@ -9340,19 +9340,19 @@ end revIDEPlaceGroupOnCard
 
 on revIDEActionRemoveGroupFromCard
    set the defaultStack to the topStack
-   
+
    if the editBg of this stack then
       answer error "This group is nested and cannot be removed separately from its owner group."
       exit revIDEActionRemoveGroupFromCard
    end if
-   
+
    repeat for each line tObject in (the selobj)
       if word 1 of the owner of tObject is among the items of "background,group" then
          answer error "This group is nested and cannot be removed separately from its owner group."
          exit revIDEActionRemoveGroupFromCard
       end if
    end repeat
-   
+
    repeat for each line tObject in (the selobj)
       if word 1 of tObject is "group" then
          remove tObject from this cd
@@ -9368,15 +9368,15 @@ on revIDERelayerControls pObjectList, pMode
    #maintain the layer order of the target objects
    local tObjectArray
    repeat for each line tObject in pObjectList
-      put tObject into tObjectArray[the layer of tObject]    
+      put tObject into tObjectArray[the layer of tObject]
    end repeat
-   
+
    local tLayers
    put keys(tObjectArray) into tLayers
-   
+
    local tRelayerGrouped
    put the relayerGroupedControls into tRelayerGrouped
-   
+
    set the relayerGroupedControls to true
    switch pMode
       case "send to back"
@@ -9394,13 +9394,13 @@ on revIDERelayerControls pObjectList, pMode
       case "move forward"
          sort lines of tLayers numeric descending
          repeat for each line tLayer in tLayers
-            set the layer of tObjectArray[tLayer] to tLayer +1 
+            set the layer of tObjectArray[tLayer] to tLayer +1
          end repeat
          break
       case "move backward"
          sort lines of tLayers numeric ascending
          repeat for each line tLayer in tLayers
-            set the layer of tObjectArray[tLayer] to tLayer -1 
+            set the layer of tObjectArray[tLayer] to tLayer -1
          end repeat
          break
    end switch
@@ -9452,25 +9452,25 @@ on revIDEFlipGraphics pGraphics, pOrientation
    if not revIDEEnsureControlsOfType(pGraphics, "graphic") then
       exit revIDEFlipGraphics
    end if
-   
+
    repeat for each line tGraphic in pGraphics
       local tPoints, tNewPoints
       put the points of tGraphic into tPoints
-      
+
       if pOrientation is "Horizontal" then
          ## 2014-08-20 EJB [[Bug 13191]]
          --flip graphic horizontally
          local tLeft, tRight
          put the left of tGraphic into tLeft
          put the right of tGraphic into tRight
-         
+
          repeat for each line tPoint in tPoints
             -- added BN in case a line is empty
             if tPoint is empty then
                put cr after tNewPoints
                next repeat
             end if
-            
+
             put tLeft + tRight - item 1 of tPoint, item 2 of tPoint & cr after tNewPoints
          end repeat
       else
@@ -9484,7 +9484,7 @@ on revIDEFlipGraphics pGraphics, pOrientation
                put cr after tNewPoints
                next repeat
             end if
-            
+
             put item 1 of tPoint, tTop + tBottom - item 2 of tPoint & cr after tNewPoints
          end repeat
       end if
@@ -9497,7 +9497,7 @@ on revIDEFlipImages pImages, pOrientation
    if not revIDEEnsureControlsOfType(pImages, "image") then
       exit revIDEFlipImages
    end if
-   
+
    lock screen
    repeat for each line tImage in pImages
       # Flip command can parse arbitrary image chunk expressions as of 6.7.8
@@ -9515,10 +9515,10 @@ end revIDEFlipImages
 on revIDEActionRotateImageBy
    modal "revRotate"
    if the cRotateImage of stack "revRotate" is empty then exit revIDEActionRotateImageBy
-   
+
    local tRotateImage
    put the cRotateImage of stack "revRotate" into tRotateImage
-   
+
    revIDEActionRotateImage tRotateImage
 end revIDEActionRotateImageBy
 
@@ -9530,7 +9530,7 @@ private command rotateImageByLongID pLongID, pAngle
    # Force the image reference to begin with the explicit token 'image'
    local tStack
    put revIDEStackOfObject(pLongID) into tStack
-   
+
    local tImageID
    put the id of pLongID into tImageID
    rotate image id tImageID of stack tStack by pAngle
@@ -9541,7 +9541,7 @@ on revIDERotateImages pImages, pAngle
    if not revIDEEnsureControlsOfType(pImages, "image") then
       exit revIDERotateImages
    end if
-   
+
    lock screen
    local tPreviousImageQualitySetting
    repeat for each line tImage in pImages
@@ -9560,10 +9560,10 @@ end revIDERotateImages
 on revIDEActionRotateGraphicBy
    modal "revRotate"
    if the cRotateGraphic of stack "revRotate" is empty then exit revIDEActionRotateGraphicBy
-   
+
    local tRotateGraphic
    put the cRotateGraphic of stack "revRotate" into tRotateGraphic
-   
+
    revIDEActionRotateGraphic tRotateGraphic
 end revIDEActionRotateGraphicBy
 
@@ -9576,7 +9576,7 @@ on revIDERotateGraphics pGraphics, pAngle
    if not revIDEEnsureControlsOfType(pGraphics, "graphic") then
       exit revIDERotateGraphics
    end if
-   
+
    lock screen
    repeat for each line tLine in pGraphics
       revRotatePoly tLine, pAngle
@@ -9651,15 +9651,15 @@ end stackModeName
 --
 command revIDESuspendDevelopmentTools
    global gREVRestore
-   
+
    -- Store the old setting of scriptdebugmode and disable it
    put revIDEGetPreference("cREVScriptDebugMode") into gREVRestore["scriptdebugmode"]
-   
+
    revIDESetPreference "cREVScriptDebugMode",false
-   
+
    # OK-2008-05-23 : Suspend any script editors.
    send "revSESuspendEditors" to revScriptEditorMain()
-   
+
    -- Remove front and back scripts that pertain to the IDE
    -- If the shift-key is down, we remove *all* 'rev' front and back scripts, including
    -- the library scripts.
@@ -9698,14 +9698,14 @@ command revIDESuspendDevelopmentTools
    end if
    delete last char of tRemoveBackList
    delete last char of tRemoveFrontList
-   
+
    -- Close all Revolution IDE stacks
    local tList, tMode, tClosedStacksList
    put the openStacks into tList
    lock messages
    repeat for each line tStack in tList
       if revIDEStackNameIsIDEStack(tStack) then
-         # OK-2008-05-23 : Compare the stack's mode to its style. If they are equal then we don't need to store the mode, as opening the 
+         # OK-2008-05-23 : Compare the stack's mode to its style. If they are equal then we don't need to store the mode, as opening the
          # stack will result in the default mode being that which matches its style.
          local tModeName
          put stackModeName(the mode of stack tStack) into tModeName
@@ -9719,28 +9719,28 @@ command revIDESuspendDevelopmentTools
       end if
    end repeat
    delete last char of tClosedStacksList
-   
+
    -- Switch to browser tool
    put the tool into gREVRestore["tool"]
    choose browse tool
-   
+
    put tRemoveBackList into gREVRestore["backscripts"]
    put tRemoveFrontList into gREVRestore["frontScripts"]
    put tClosedStacksList into gREVRestore["stacks"]
-   
+
    -- Reset the windowBoundingRect
    local tWindowRect
    put revIDEStackScreenRect(the short name of the topStack, true) into tWindowRect
    set the windowBoundingRect to tWindowRect
-   
+
    -- Show the restore dialog
    lock recent
    palette "revRestore"
    unlock recent
-   
+
    -- Setup the default menubar to one specific to this mode
    set the defaultMenuBar to the long id of group "Restore Development Tools" of stack "revRestore"
-   
+
    unlock messages
 end revIDESuspendDevelopmentTools
 
@@ -9759,19 +9759,19 @@ command revIDERestoreDevelopmentTools
    end repeat
    put true into gREVDontLoadMenus
    put true into gREVDontError
-   
+
    local tMode, tStackName
    repeat for each line tStack in gREVRestore["stacks"]
       put item 2 of tStack into tMode
       put item 1 of tStack into tStackName
-      
+
       --      put item tMode of "toplevel,toplevel,modeless,palette,modal" into tMode
       --    do "go stack" && quote & (item 1 of l) & quote && "as" && tMode
-      
+
       # OK-2008-08-25 : Bug 7022 - If plugins throw errors when opened, this wil fail, so we catch
       # the errors with a try here, and disregard them.
       try
-         
+
          # OK-2008-05-23 : If tMode is empty, it means that the stack's mode matched its style at the time of closing
          # and this means that no mode change is required.
          lock messages
@@ -9791,7 +9791,7 @@ command revIDERestoreDevelopmentTools
             default
                go stack tStackName
          end switch
-         
+
       end try
    end repeat
    close stack "revRestore"
@@ -9800,13 +9800,13 @@ command revIDERestoreDevelopmentTools
    set the width of stack "revMenuBar" to the width of stack "revMenuBar" - 1
    ideSetWindowBoundingRect
    choose gREVRestore["tool"]
-   
+
    -- Restore the script debug mode
    revIDESetPreference "cREVScriptDebugMode", gREVRestore["scriptdebugmode"]
-   
+
    # OK-2008-05-23 : Restore any script editors.
    send "revSERestoreEditors" to revScriptEditorMain()
-   
+
    unlock messages
 end revIDERestoreDevelopmentTools
 
@@ -9835,7 +9835,7 @@ command revIDECheckForUpdates
       end switch
       set the itemDel to comma
       open process tCommand for neither
-   end if   
+   end if
 end revIDECheckForUpdates
 
 # OK-2009-10-07 : Noticed that View -> Go Prev wasn't working, decided to rewrite code
@@ -9849,7 +9849,7 @@ on revIDEGoCard pMoveSpecifier
    if the milliseconds - sMoveBuffers[pMoveSpecifier] < kMoveBufferSize then
       exit revIDEGoCard
    end if
-   
+
    set the defaultStack to the topStack
    local tCommand
    put "go " & pMoveSpecifier into tCommand
@@ -9862,14 +9862,14 @@ function revIDEScriptEditorPrefix
 end revIDEScriptEditorPrefix
 
 /*
-User stacks, script editors, the dictionary and resource center are considered windows 
+User stacks, script editors, the dictionary and resource center are considered windows
 from the point of view of the menubar
 */
 function revIDEStackIsWindow pStackName
    if revIDEStackIsIDEWindow(pStackName) then
       return true
    end if
-   
+
    return not revIDEStackNameIsIDEStack(pStackName)
 end revIDEStackIsWindow
 
@@ -9877,36 +9877,36 @@ local sWindowList
 on revIDEUpdateWindowList
    local tOpenstacks
    put the openStacks into tOpenstacks
-   
+
    local tStacks, tName
    repeat for each line tStackName in tOpenstacks
       if revIDEStackIsWindow(tStackName) then
          put the name of stack tStackName into tName
-         if tStacks is empty then 
+         if tStacks is empty then
             put tName into tStacks
          else
             put return & tName after tStacks
          end if
       end if
    end repeat
-   
+
    if tStacks is not empty then
       local tTopMostStack
       put line 1 of tStacks into tTopMostStack
-      
+
       local tOtherstacks
       put line 2 to -1 of tStacks into tOtherstacks
       sort tOtherstacks
-      
+
       put tTopMostStack & return & tOtherstacks into tStacks
    end if
-   
+
    if tStacks is not sWindowList then
       put tStacks into sWindowList
    end if
 end revIDEUpdateWindowList
 
-# Returns the list of the open stack names which should be included in a window menu. 
+# Returns the list of the open stack names which should be included in a window menu.
 function revIDEWindowList
    return sWindowList
 end revIDEWindowList
@@ -9916,10 +9916,10 @@ Sends the current top window to the back
 */
 on revIDESendCurrentWindowToBack
    lock messages
-   
+
    local tWindowsList
    put the windows into tWindowsList
-   
+
    local tWindows, tWindows2
    repeat for each line l in tWindowsList
       if the mode of stack l is among the items of "1,2" then
@@ -9930,14 +9930,14 @@ on revIDESendCurrentWindowToBack
    end repeat
    if char -1 of tWindows2 is return then delete char -1 of tWindows2
    if char -1 of tWindows is return then delete char -1 of tWindows
-   
+
    local tCurrentStackName
    put char 3 to -1 of line (lineOffset("!c",the text of menu "Window")) of the text of menu "Window" into tCurrentStackName
    delete line lineOffset(tCurrentStackName,tWindows) of tWindows
-   
-   if the num of lines in tWindows2 is not 0 
+
+   if the num of lines in tWindows2 is not 0
    then put tWindows2 & return & tWindows into tWindows
-   
+
    repeat for each line l in tWindows
       -- delete char 1 to 2 of l
       if the mode of stack l is 1 or the mode of stack l is 2 then toplevel l
@@ -9981,30 +9981,30 @@ function revIDERecentStacks
    # Get recent paths from preferences
    local tRecentPaths
    put revIDEGetPreference("cRecentStackPaths") into tRecentPaths
-   
+
    # If users have preference to sort recent list alphabetic, sort.
    if revIDEGetPreference("cRecentSort") is "alphabetically" then
       set the itemdel to "/"
-      sort lines of tRecentPaths by last item of each 
+      sort lines of tRecentPaths by last item of each
    end if
-   
+
    # ensure preferences take effect immediately
    __trimRecentStacks tRecentPaths
-   
+
    # Split list into array
    local tRecentPathData
    put tRecentPaths into tRecentPathData
    split tRecentPathData by return
-   
+
    # Generate labels for the stacks. The label is the filename without the file extension
    # If two stacks have the same filename, the minimum path is added to the label to
    # distinguish the entries
    repeat with x = 1 to the number of elements in tRecentPathData
       put tRecentPathData[x] into tRecentPathData[x]["filename"]
-      put revIDEFilepathUniqueLabel(tRecentPaths,tRecentPathData[x]["filename"]) into tRecentPathData[x]["label"] 
-      
+      put revIDEFilepathUniqueLabel(tRecentPaths,tRecentPathData[x]["filename"]) into tRecentPathData[x]["label"]
+
    end repeat
-   
+
    return tRecentPathData
 end revIDERecentStacks
 
@@ -10014,28 +10014,28 @@ Adds an entry to the recent file paths
 on revIDEAddRecentStack pFilePath
    # Validate parameters
    if there is not a file pFilePath then exit revIDEAddRecentStack
-   
-   # Get recent paths preferences 
+
+   # Get recent paths preferences
    local tRecentPaths
    put revIDEGetPreference("cRecentStackPaths") into tRecentPaths
-   
-   if tRecentPaths is empty then 
+
+   if tRecentPaths is empty then
       put pFilePath into tRecentPaths
    else
       put pFilePath & return & tRecentPaths into tRecentPaths
       put revIDECleanRecentStackList(tRecentPaths) into tRecentPaths
    end if
-   
+
    __trimRecentStacks tRecentPaths
-   
+
    #Set the preference
    revIDESetPreference "cRecentStackPaths", tRecentPaths
-   
+
    # Notify registered stack of the change by sending an ideRecentStacksChanged message
    -- BB needs to be implemented? Question. The general message sending in the IDE does not have "lock ide messages" option
-   -- So calling revIDEAddRecentStack is quick succession.. lets say in an "openAllStacks" handler is going to cause this message 
-   -- fire multiple times in quick succession. lock ide messages could prevent the sending of messages and stack/replace them 
-   -- and flush the queue on unlock ide messages.. resulting in just one version of the message being sent. 
+   -- So calling revIDEAddRecentStack is quick succession.. lets say in an "openAllStacks" handler is going to cause this message
+   -- fire multiple times in quick succession. lock ide messages could prevent the sending of messages and stack/replace them
+   -- and flush the queue on unlock ide messages.. resulting in just one version of the message being sent.
    ideMessageSend "ideRecentFilesChanged"
 end revIDEAddRecentStack
 
@@ -10045,12 +10045,12 @@ Trims the recent files to the user's preferred number
 private command __trimRecentStacks @xStackFiles
    local tNumRecent
    put revIDEGetPreference("cNumRecent") into tNumRecent
-   
+
    if tNumRecent is not an integer then
       revIDESetPreference "cNumRecent",15
       put 15 into tNumRecent
    end if
-   
+
    delete line tNumRecent+1 to -1 of xStackFiles
 end __trimRecentStacks
 
@@ -10070,50 +10070,50 @@ myProject.livecode
 private function revIDEFilepathUniqueLabel pFilepaths, pFilepath
    set the itemdel to "/"
    local tItemIsUnique, tLabel
-   
+
    # Repeat backward through the items of the filepath we're generating the label for
    repeat with x = 1 to the number of items of pFilepath
       put true into tItemIsUnique
-      
+
       # Repeat through the list of filepaths looking for items that match
       repeat for each line tPathInList in pFilepaths
          # Ignore the exact filename in the list
          if tPathInList is pFilepath then next repeat
          if the number of items of tPathInList < x then next repeat
-         
+
          if item -x of tPathInList is item -x of pFilepath then
             put false into tItemIsUnique
          end if
       end repeat
-      
+
       # If unique, add to the label and exit seach
       if tLabel is empty then
          put item -x of pFilepath into tLabel
       else
          put item -x of pFilepath & slash before tLabel
       end if
-      
+
       if tItemIsUnique is true then
          exit repeat
       end if
    end repeat
-   
+
    return tLabel
 end revIDEFilepathUniqueLabel
 
 /*
-Cleans the list of recent file paths. Removes broken links (Stacks that have been subsequently removed), 
+Cleans the list of recent file paths. Removes broken links (Stacks that have been subsequently removed),
 removed duplicates and resolves the label when two stack have the same name but stored in different paths.
 */
 function revIDECleanRecentStackList pRecentStackList
    local tCleanList
-   
+
    repeat for each line tRecentStack in pRecentStackList
       # Ignore broken links
       if there is not a file tRecentStack then next repeat
       # Ignore duplicates
       if tRecentStack is among the lines of tCleanList then next repeat
-      
+
       # Add to clean list
       if tCleanList is empty then
          put tRecentStack into tCleanList
@@ -10121,7 +10121,7 @@ function revIDECleanRecentStackList pRecentStackList
          put return & tRecentStack after tCleanList
       end if
    end repeat
-   
+
    return tCleanList
 end revIDECleanRecentStackList
 
@@ -10129,14 +10129,14 @@ end revIDECleanRecentStackList
 local sTransientTextField
 
 /*
-Adds a text field (usually to the property inspector) at a specified rect pRect, which, when its text is changed, dispatches 
+Adds a text field (usually to the property inspector) at a specified rect pRect, which, when its text is changed, dispatches
 a callback pCallback to the specified target and deletes the text field. pCallbackParams is sent to the callback target as a parameter
 */
 on revIDECreateTransientTextField pRect, pCallback, pCallbackParams, pCurrentText
    if sTransientTextField is not empty then
       revIDERemoveTransientTextField
    end if
-   
+
    lock screen
    lock messages
    local tLongID
@@ -10146,19 +10146,19 @@ on revIDECreateTransientTextField pRect, pCallback, pCallbackParams, pCurrentTex
    put pCallbackParams into sTransientTextField["callback_params"]
    put pCallback into sTransientTextField["callback"]
    set the rect of tLongID to pRect
-   
+
    -- Preserve the requested left and vertical centering of the field
    local tLoc, tLeft
    put the loc of tLongID into tLoc
    put the left of tLongID into tLeft
-   
+
    local tScript
    put "on closeField;revIDETransientTextChanged;end closeField" into tScript
    put ";on returnInField; revIDETransientTextChanged;end returnInField" after tScript
    put ";on exitField;revIDETransientTextChanged;end exitField" after tScript
    set the script of tLongID to tScript
    set the text of tLongID to pCurrentText
-   
+
    -- Ensure the text fits
    if the formattedWidth of tLongID > the width of tLongID then
       set the width of tLongID to the formattedWidth of tLongID
@@ -10166,11 +10166,11 @@ on revIDECreateTransientTextField pRect, pCallback, pCallbackParams, pCurrentTex
    set the height of tLongID to the formattedHeight of tLongID
    set the loc of tLongID to tLoc
    set the left of tLongID to tLeft
-   
+
    local tTargetLongID
    put the long id of the target into tTargetLongID
    put tTargetLongID into sTransientTextField["callback_target"]
-   get the textAlign of tTargetLongID 
+   get the textAlign of tTargetLongID
    if it is not empty then
       set the textAlign of tLongID to it
    end if
@@ -10236,16 +10236,16 @@ function revIDEFolderListing pFolder, pListFiles
    if there is not a folder pFolder then
       return empty
    end if
-   
+
    revIDEPushDefaultFolder pFolder
-   
+
    local tList
    if pListFiles then
       put the files into tList
    else
       put the folders into tList
    end if
-   
+
    filter tList without ".*"
    revIDEPopDefaultFolder
    return tList
@@ -10276,7 +10276,7 @@ private function __tutorialLocations
 end __tutorialLocations
 
 private function __findTutorialLocation pCourse, pTutorial, pLesson
-   local tLocation 
+   local tLocation
    repeat for each line tLocation in __tutorialLocations()
       local tLessonPath
       put revIDETutorialLessonPath(pCourse, pTutorial, pLesson, tLocation) into tLessonPath
@@ -10284,7 +10284,7 @@ private function __findTutorialLocation pCourse, pTutorial, pLesson
          return tLocation
       end if
    end repeat
-   
+
    return __revIDEError("tutorial not found" && pCourse && "-" && pTutorial && "-" && pLesson) for error
 end __findTutorialLocation
 
@@ -10294,13 +10294,13 @@ on revIDEStartTutorial pCourse, pTutorial, pLesson
    if tLocation is empty then
       exit revIDEStartTutorial
    end if
-   
+
    revIDETutorialInfoSet pCourse, pTutorial, pLesson, tLocation
    dispatch "revTutorialStart" to stack "revTutorial"
    revIDETutorialProgressChanged
 end revIDEStartTutorial
 
-on revIDEStopTutorial   
+on revIDEStopTutorial
    dispatch "revTutorialStop" to stack "revTutorial"
    revIDETutorialProgressChanged
    close stack "revTutorial"
@@ -10317,7 +10317,7 @@ function revIDETutorialResourcePath pTutorialInfo
    if there is a folder tTutorialPath then
       return tTutorialPath
    end if
-   return __revIDEError("Tutorial resource path not found") 
+   return __revIDEError("Tutorial resource path not found")
 end revIDETutorialResourcePath
 
 function revIDETutorialInternalResource pRelativePath
@@ -10336,11 +10336,11 @@ function revIDETutorialInternalResource pRelativePath
       default
          break
    end switch
-   
+
    local tInternalResourceBase
-   put revIDETutorialPath(sTutorialInfo["course"], sTutorialInfo["tutorial"], \ 
+   put revIDETutorialPath(sTutorialInfo["course"], sTutorialInfo["tutorial"], \
          sTutorialInfo["location"]) & "/_resources/" into tInternalResourceBase
-   
+
    local tCandidateFile
    if tPlatformFolder is not empty then
       put tInternalResourceBase & slash & tPlatformFolder & slash & pRelativePath into tCandidateFile
@@ -10348,12 +10348,12 @@ function revIDETutorialInternalResource pRelativePath
          return tCandidateFile
       end if
    end if
-   
+
    put tInternalResourceBase & slash & pRelativePath into tCandidateFile
    if there is a file tCandidateFile then
       return tCandidateFile
    end if
-   
+
    return empty
 end revIDETutorialInternalResource
 
@@ -10365,7 +10365,7 @@ on revIDETutorialSave pTaggedObjects, pStepName
    if sTutorialInfo is empty then
       return __revIDEError("No tutorial in progress")
    end if
-   
+
    lock messages
    # Store all the tags for tagged objects as custom properties
    repeat for each element tTagged in pTaggedObjects
@@ -10375,7 +10375,7 @@ on revIDETutorialSave pTaggedObjects, pStepName
          end if
       end repeat
    end repeat
-   
+
    # Ensure there is a suitable folder to save the stacks
    if pTaggedObjects["stack"] is not empty then
       set the itemdelimiter to slash
@@ -10383,7 +10383,7 @@ on revIDETutorialSave pTaggedObjects, pStepName
       put item 1 to -2 of revIDETutorialUserStackPath() into tUserTutorialFolder
       revIDEEnsurePath tUserTutorialFolder
    end if
-   
+
    # Save a copy of the current tagged stacks to the user data folder
    local tOldFilename, tFilename, tMainstack, tStackTags
    repeat for each key tStackTag in pTaggedObjects["stack"]
@@ -10392,7 +10392,7 @@ on revIDETutorialSave pTaggedObjects, pStepName
       put revIDETutorialUserStackPath(tStackTag) into tFilename
       save stack tMainstack as tFilename with newest format
       set the filename of tMainstack to tOldFilename
-      
+
       if tStackTags is empty then
          put tStackTag into tStackTags
       else
@@ -10400,27 +10400,27 @@ on revIDETutorialSave pTaggedObjects, pStepName
       end if
    end repeat
    unlock messages
-   
+
    # Update the stored course data
    local tCourseDataA
    put revIDETutorialSavedCourseProgress(sTutorialInfo["course"]) into tCourseDataA
-   
+
    local tLessonDataA
    put tCourseDataA[sTutorialInfo["tutorial"]][sTutorialInfo["lesson"]] into tLessonDataA
-   
+
    put revIDETutorialDonePercentage() into tLessonDataA["progress"]
    put pStepName into tLessonDataA["step"]
    put tStackTags into tLessonDataA["stacks"]
-   
+
    put tLessonDataA into tCourseDataA[sTutorialInfo["tutorial"]][sTutorialInfo["lesson"]]
-   
+
    revIDETutorialSaveCourseProgress sTutorialInfo["course"], tCourseDataA
 end revIDETutorialSave
 
 private function __fetchAndRemoveTags pStack
    local tTags
    put the name of pStack into tTags["stack"][the cTutorialTag of pStack]
-   
+
    local tCardLongID
    repeat for each line tLine in the cardIDs of pStack
       put the long id of card id tLine of pStack into tCardLongID
@@ -10452,17 +10452,17 @@ end revIDETutorialUpdateAndRemoveTags
 on revIDETutorialLoad pCourse, pTutorial, pLesson
    local tLocation
    put __findTutorialLocation(pCourse, pTutorial, pLesson) into tLocation
-   
+
    if tLocation is empty then
       exit revIDETutorialLoad
    end if
 
    revIDETutorialInfoSet pCourse, pTutorial, pLesson, tLocation
-   
+
    local tCourseProgressA, tLessonDataA
    put revIDETutorialSavedCourseProgress(pCourse) into tCourseProgressA
    put tCourseProgressA[pTutorial][pLesson] into tLessonDataA
-   
+
    # Get all the tagged mainstacks and all object tags
    local tStackList, tTags, tStackName
    repeat for each line tStackTag in tLessonDataA["stacks"]
@@ -10474,14 +10474,14 @@ on revIDETutorialLoad pCourse, pTutorial, pLesson
       else
          put return & tStackName after tStackList
       end if
-      
+
       revIDETutorialUpdateAndRemoveTags tStackName, tTags
    end repeat
-   
+
    dispatch "revTutorialResume" to stack "revTutorial" with tStackList, tTags, tLessonDataA["step"]
 end revIDETutorialLoad
 
-/* 
+/*
 Returns the preference name corresponding to the given course
 */
 function revIDETutorialCoursePreferenceName pName
@@ -10510,7 +10510,7 @@ function revIDETutorialDonePercentage
    if sTutorialInfo is empty then
       return 0
    end if
-   
+
    dispatch function "revTutorialDonePercentage" to stack "revTutorial"
    return the result
 end revIDETutorialDonePercentage
@@ -10533,7 +10533,7 @@ end revIDETutorialCoursePath
 Returns the description of the given course
 */
 function revIDETutorialCourseDescription pCourse, pLocation
-   return revIDEUTF8FileContents(revIDETutorialCoursePath(pCourse, pLocation) \ 
+   return revIDEUTF8FileContents(revIDETutorialCoursePath(pCourse, pLocation) \
          & slash & "description.txt")
 end revIDETutorialCourseDescription
 
@@ -10541,7 +10541,7 @@ end revIDETutorialCourseDescription
 Lists the tutorials in the folder for the given course
 */
 function revIDETutorialListTutorials pCourse
-   return revIDEFolderListing(revIDETutorialCoursePath(pCourse, \ 
+   return revIDEFolderListing(revIDETutorialCoursePath(pCourse, \
          revIDESpecialFolderPath("tutorial")) & slash & "tutorials", false)
 end revIDETutorialListTutorials
 
@@ -10556,7 +10556,7 @@ end revIDETutorialPath
 Returns the description of the given tutorial
 */
 function revIDETutorialDescription pCourse, pTutorial, pLocation
-   return revIDEUTF8FileContents(revIDETutorialPath(pCourse, pTutorial, pLocation) \ 
+   return revIDEUTF8FileContents(revIDETutorialPath(pCourse, pTutorial, pLocation) \
          & slash & "description.txt")
 end revIDETutorialDescription
 
@@ -10565,7 +10565,7 @@ Lists the lessons in the folder for the given tutorial of the given course
 */
 function revIDETutorialListLessons pCourse, pTutorial, pLocation
    local tFiles
-   put revIDEFolderListing(revIDETutorialPath(pCourse, pTutorial, pLocation) \ 
+   put revIDEFolderListing(revIDETutorialPath(pCourse, pTutorial, pLocation) \
          & slash & "lessons", true) into tFiles
    replace ".txt" with empty in tFiles
    return tFiles
@@ -10575,7 +10575,7 @@ end revIDETutorialListLessons
 Returns the path to the specified lesson
 */
 function revIDETutorialLessonPath pCourse, pTutorial, pLesson, pLocation
-   return revIDETutorialPath(pCourse, pTutorial, pLocation) \ 
+   return revIDETutorialPath(pCourse, pTutorial, pLocation) \
          & slash &"lessons" & slash & pLesson & ".txt"
 end revIDETutorialLessonPath
 
@@ -10599,20 +10599,20 @@ Returns a structured array representing the info of all of the currently availab
 function revIDETutorialCourseInfo
    local tCourseList
    put revIDETutorialListCourses() into tCourseList
-   
+
    local tFixedCourses
    put revIDETutorialFixedCourses() into tFixedCourses
    repeat for each item tItem in tFixedCourses
       delete line lineoffset(tItem, tCourseList) of tCourseList
    end repeat
-   
+
    replace comma with return in tFixedCourses
    if tCourseList is empty then
       put tFixedCourses into tCourseList
    else
       put tFixedCourses & return before tCourseList
    end if
-   
+
    local tCourseDataA, tCount, tCourseProgress, tPercentage
    repeat for each line tCourse in tCourseList
       add 1 to tCount
@@ -10626,7 +10626,7 @@ function revIDETutorialCourseInfo
       divide tPercentage by the number of elements in tCourseDataA[tCount]["tutorials"]
       put tPercentage into tCourseDataA[tCount]["progress"]
    end repeat
-   
+
    return tCourseDataA
 end revIDETutorialCourseInfo
 
@@ -10636,9 +10636,9 @@ Returns a structured array representing the info of all of the currently availab
 function revIDETutorialInfo pCourse
    local tTutorialList
    put revIDETutorialListTutorials(pCourse) into tTutorialList
-   
+
    sort tTutorialList ascending numeric
-   
+
    local tTutorialDataA, tCount, tPercentage
    repeat for each line tTutorial in tTutorialList
       add 1 to tCount
@@ -10646,7 +10646,7 @@ function revIDETutorialInfo pCourse
       put tTutorial into tTutorialDataA[tCount]["name"]
       put revIDETutorialDescription(pCourse, tTutorial) into tTutorialDataA[tCount]["description"]
       put 0 into tPercentage
-      
+
       if tTutorialDataA[tCount]["lessons"] is not empty then
          repeat for each element tLesson in tTutorialDataA[tCount]["lessons"]
             add tLesson["progress"] to tPercentage
@@ -10655,7 +10655,7 @@ function revIDETutorialInfo pCourse
       end if
       put tPercentage into tTutorialDataA[tCount]["progress"]
    end repeat
-   
+
    return tTutorialDataA
 end revIDETutorialInfo
 
@@ -10665,17 +10665,17 @@ Returns a structured array representing the info of all of the currently availab
 function revIDETutorialLessonInfo pCourse, pTutorial
    local tLessonList
    put revIDETutorialListLessons(pCourse, pTutorial) into tLessonList
-   
+
    local tProgressInfoA
    put revIDETutorialSavedCourseProgress(pCourse) into tProgressInfoA
-   
+
    local tLessonDataA, tCount
    repeat for each line tLesson in tLessonList
-      add 1 to tCount     
-      put tProgressInfoA[pTutorial][tLesson]["progress"] + 0 into tLessonDataA[tCount]["progress"]      
+      add 1 to tCount
+      put tProgressInfoA[pTutorial][tLesson]["progress"] + 0 into tLessonDataA[tCount]["progress"]
       put tLesson into tLessonDataA[tCount]["name"]
    end repeat
-   
+
    return tLessonDataA
 end revIDETutorialLessonInfo
 
@@ -10687,7 +10687,7 @@ on revIDETutorialProgressChanged
    if sTutorialInfo is not empty then
        dispatch "revTutorialSaveProgress" to stack "revTutorial"
    end if
-   
+
    # Notify any subscribed objects
    ideMessageSend "ideTutorialProgressChanged"
 end revIDETutorialProgressChanged
@@ -10705,7 +10705,7 @@ end revIDETutorialSkipToNextSkipPoint
 private function escape pString, pConvertLineEndings
    replace "\" with "\\" in pString
    replace quote with ("\" & quote) in pString
-   
+
    if pConvertLineEndings is true then
       replace CRLF with "\n" in pString
       replace numToCodepoint(13) with "\n" in pString
@@ -10730,7 +10730,7 @@ end __getLCBSourceFile
 
 private function revIDEGetBaseDocsData pWhich
    local tData
-   
+
    local tAPIPath, tLibs
    put revIDESpecialFolderPath("api", pWhich) into tAPIPath
    put files(tAPIPath) into tLibs
@@ -10744,47 +10744,47 @@ private function revIDEGetBaseDocsData pWhich
          put comma & tDoc after tData
       end if
    end repeat
-   
+
    return tData
-end revIDEGetBaseDocsData 
+end revIDEGetBaseDocsData
 
 private function revIDEGetExtensionDocsData pAPI
    local tExtensionDocsDataA
    put revIDEExtensionDocsData(pAPI) into tExtensionDocsDataA
-   
+
    local tFolder, tCachedDataFolder
    set the itemdelimiter to slash
-   
+
    local tData
    repeat for each element tExtensionData in tExtensionDocsDataA
       local tExtensionAPI
       put tExtensionData["folder"] into tFolder
-      
+
       local tSource
       put tExtensionData["source_file"] into tSource
-      
+
       # Check if the lcdoc file is out of date
       put revEnvironmentUserDocsPath() & slash & tExtensionData["name"] into tCachedDataFolder
       revIDEEnsurePath tCachedDataFolder
-      
+
       local tInputs
       put empty into tInputs
       if tSource is not empty then
          put tFolder & slash & tSource into tInputs[1]
       end if
-      
-      # If we are running from source, also add the docs parser as an input 
+
+      # If we are running from source, also add the docs parser as an input
       # dependency of the docs files
       if not revEnvironmentIsInstalled() then
          put the effective filename of stack "revDocsParser" into \
                tInputs[the number of elements in tInputs + 1]
       end if
-      
+
       local tNeedUpdate, tError, tAPIDoc
       put tCachedDataFolder & slash & "api.lcdoc" into tAPIDoc
       put revIDEIsFilesetStale(tInputs, tAPIDoc, false, tError) \
             into tNeedUpdate
-      
+
       # If there is an up-to-date api.lcdoc in the source folder, just copy that across
       local tSourceAPI
       put tFolder & slash & "api.lcdoc" into tSourceAPI
@@ -10796,16 +10796,16 @@ private function revIDEGetExtensionDocsData pAPI
             end if
          else if tNeedUpdate then
             if revIDEIsFilesetStale(tInputs, tSourceAPI, false, tError) \
-                  is false then 
-               
+                  is false then
+
                revIDESetUTF8FileContents tAPIDoc, revIDEUTF8FileContents(tSourceAPI)
                put false into tNeedUpdate
-            end if 
+            end if
          end if
       end if
       # Regenerate the lcdoc file if required
       if tNeedUpdate is true then
-         # Generate the docs text in lcdoc format 
+         # Generate the docs text in lcdoc format
          local tDoc
          if tExtensionData["source_type"] is "lcb" then
             dispatch function "revDocsGenerateDocsFileFromModularFile" to stack "revDocsParser" with \
@@ -10829,7 +10829,7 @@ private function revIDEGetExtensionDocsData pAPI
 		    revIDESetUTF8FileContents tAPIDoc, tDoc
          end if
       end if
-      
+
       local tAPIJS
       put tCachedDataFolder & "/api.js" into tAPIJS
       # Check if the .js is out of date
@@ -10838,26 +10838,26 @@ private function revIDEGetExtensionDocsData pAPI
          put revIDEIsFilesetStale(tInputs, tAPIJS , false, tError) \
                into tNeedUpdate
       end if
-      
+
       if tNeedUpdate is false then
          put revIDEUTF8FileContents(tAPIJS) into tExtensionAPI
       else if tNeedUpdate is true then
          local tLibraryArray, Lcdoc
-         dispatch function "revDocsParseDocFileToLibraryArray" to stack "revDocsParser" \ 
-               with tAPIDoc, tExtensionData["title"], \ 
+         dispatch function "revDocsParseDocFileToLibraryArray" to stack "revDocsParser" \
+               with tAPIDoc, tExtensionData["title"], \
                tExtensionData["author"]
          put the result into tLibraryArray
-         
+
          dispatch function "revDocsFormatLibraryDocArrayAsJSON" to stack "revDocsParser" \
                with tLibraryArray
          put the result into tExtensionAPI
-         
+
          # Update the dictionary database
          ideDocsUpdateDatabase pAPI, tLibraryArray, false
-         
+
          revIDESetUTF8FileContents tAPIJS, tExtensionAPI
       end if
-      
+
       if tExtensionAPI is not empty then
          if tData is not empty then
             put comma & tExtensionAPI after tData
@@ -10877,25 +10877,25 @@ private function revIDEGetDocsAPIData pWhich
       put comma & tExtensions after tData
    end if
    return tData
-end revIDEGetDocsAPIData 
+end revIDEGetDocsAPIData
 
 private function revIDEGetDocsGuideData
    local tData
-   
+
    local tGuidePath
    put revIDESpecialFolderPath("guide") into tGuidePath
    put revIDEUTF8FileContents(tGuidePath & slash & "distributed_guide.js") into tData
-   
+
    local tExtensionDocsDataA
    put revIDEExtensionDocsData() into tExtensionDocsDataA
-   
+
    local tFolder, tCachedDataFolder
    set the itemdelimiter to slash
    repeat for each element tExtensionData in tExtensionDocsDataA
       local tExtensionGuide, tGuideFile
       put empty into tExtensionGuide
       put tExtensionData["folder"] into tFolder
-      put revEnvironmentUserDocsPath() & slash & \ 
+      put revEnvironmentUserDocsPath() & slash & \
             tExtensionData["name"] into tCachedDataFolder
       put tFolder & slash & "guide.md" into tGuideFile
       if there is not a file tGuideFile then
@@ -10905,19 +10905,19 @@ private function revIDEGetDocsGuideData
       end if
       if there is not a file tGuideFile then next repeat
       revIDEEnsurePath tCachedDataFolder
-      
+
       # Check if the .js is out of date
       local tNeedUpdate, tError, tGuideJS
       put tCachedDataFolder & "/guide.js" into tGuideJS
       put revIDEIsFilesetStale(tGuideFile, tGuideJS, false, tError) \
             into tNeedUpdate
-      
+
       if tNeedUpdate is false then
          put revIDEUTF8FileContents(tGuideJS) into tExtensionGuide
       else if tNeedUpdate is true then
          local tGuide
          put revIDEUTF8FileContents(tGuideFile) into tGuide
-         
+
          if tGuide is not empty then
             put "{" & CR after tExtensionGuide
             put tab & quote & "name" & quote & ":" && quote & tExtensionData["name"] & quote & comma & CR after tExtensionGuide
@@ -10926,35 +10926,35 @@ private function revIDEGetDocsGuideData
             put tab & quote & "location" & quote & ":" && quote & tFolder & quote & comma & CR after tExtensionGuide
             put quote & "data" & quote & ":" & escape(tGuide, true) & CR after tExtensionGuide
             put "}" after tExtensionGuide
-            
+
             revIDESetUTF8FileContents tGuideJS, tExtensionGuide
          end if
       else
          -- FIXME There is some inconsistency in the guide's files that we
          -- can't cope with
       end if
-      
+
       if tExtensionGuide is not empty then
          put comma & tExtensionGuide after tData
       end if
    end repeat
-   
+
    return tData
 end revIDEGetDocsGuideData
 
 on revIDERegenerateBuiltGuides
    local tData
-   
+
    # Get the location of the distributed guide
    local tGuidePath
    put revIDESpecialFolderPath("guide") into tGuidePath
-   
+
    put "var tUserGuideData =" & CR & "{" & CR & tab & quote & "guides" & quote & ":[" into tData
-   
+
    put revIDEGetDocsGuideData() after tData
-   
+
    put CR & tab & "]" & CR & "}" after tData
-   
+
    local tDocsCache
    put revIDESpecialFolderPath("documentation cache") into tDocsCache
    revIDESetUTF8FileContents tDocsCache & slash & "built_guide.js", tData
@@ -10969,7 +10969,7 @@ on revIDERegenerateBuiltAPIs
       if item 2 of tAPI is "livecode_ide" and revEnvironmentIsInstalled() then
          next repeat
       end if
-      
+
       put revIDEGetDocsAPIData(item 2 of tAPI) into tAPIData
       dispatch function "revDocsCreateAPIJSON" to stack "revDocsParser" \
             with item 1 of tAPI, item 2 of tAPI, "", tAPIData
@@ -10979,13 +10979,13 @@ on revIDERegenerateBuiltAPIs
          put comma & the result after tData
       end if
    end repeat
-   
+
    local tDictionaryData
    put "var dictionary_data =" & return & "{" & return & \
          tab & quote & "docs" & quote & ":[" & \
          tData & return & tab & "]" & return & "}" \
          into tDictionaryData
-   
+
    local tDocsCache
    put revIDESpecialFolderPath("documentation cache") into tDocsCache
    revIDESetUTF8FileContents tDocsCache & slash & "built_api.js", tDictionaryData
@@ -11008,12 +11008,12 @@ private on revIDEGenerateDistributedGuide
    local tGuideFoldersWithLocationA
    put revIDESpecialFolderPath("ide guides") into tGuideFoldersWithLocationA[1]["folder"]
    put "ide" into tGuideFoldersWithLocationA[1]["location"]
-   
+
    if not revEnvironmentIsInstalled() then
       put revIDESpecialFolderPath("repo guides") into tGuideFoldersWithLocationA[2]["folder"]
       put "repo" into tGuideFoldersWithLocationA[2]["location"]
    end if
-   
+
    local tGuideJSONFile
    put revIDESpecialFolderPath("guide") & slash & "distributed_guide.js" \
          into tGuideJSONFile
@@ -11030,11 +11030,11 @@ private on revIDEGenerateDistributedGuide
    if tNeedUpdate is not true then
       exit revIDEGenerateDistributedGuide
    end if
-   
+
    local tOrderedGuidesA, tOrderFolder
    put revIDESpecialFolderPath("ide guides") into tOrderFolder
    put revDocsOrderedGuideData(tGuideFoldersWithLocationA, tOrderFolder) into tOrderedGuidesA
-   
+
    local tGuideData
    repeat for each element tGuideA in tOrderedGuidesA
       put tab & "{" after tGuideData
@@ -11042,7 +11042,7 @@ private on revIDEGenerateDistributedGuide
       put return & tab & "}," after tGuideData
    end repeat
    delete the last char of tGuideData
-   
+
    # Write out to apropriate location
    revIDESetUTF8FileContents tGuideJSONFile, tGuideData
 end revIDEGenerateDistributedGuide
@@ -11050,22 +11050,22 @@ end revIDEGenerateDistributedGuide
 private command revIDEGenerateDistributedAPI
    local tRepoPath
    put revEnvironmentRepositoryPath() into tRepoPath
-   
+
    local tDocsFolder
    put tRepoPath & slash & "docs" into tDocsFolder
    if there is not a folder tDocsFolder then
       answer "No dictionary data found at" && tDocsFolder
    end if
-   
+
    # Check to see if we need to regenerate the script dictionary
    local tNeedUpdate, tInputs, tError, tOutput
    put the effective filename of stack "revDocsParser" into tInputs[0]
    put tDocsFolder & slash & "dictionary" into tInputs[1]
    put tDocsFolder & slash & "glossary" into tInputs[2]
    put revIDESpecialFolderPath("api", "livecode_script") & slash & "script.js" into tOutput
-   
+
    put revIDEIsFilesetStale(tInputs, tOutput, true, tError) into tNeedUpdate
-   
+
    # Regenerate dictionary if necessary
    if tNeedUpdate then
       local tScriptA
@@ -11075,20 +11075,20 @@ private command revIDEGenerateDistributedAPI
       put "dictionary" into tScriptA["type"]
       # Parse the dictionary files into a structured array
       put revDocsParseDictionaryToLibraryArray(tDocsFolder) into tScriptA["doc"]
-      
+
       # Update the database
       ideDocsUpdateDatabase "livecode_script", tScriptA, true
-      
+
       local tJSON
       put revDocsFormatLibraryDocArrayAsJSON(tScriptA) into tJSON
       revIDESetUTF8FileContents revIDESpecialFolderPath("api", "livecode_script") & slash & "script.js", \
             tJSON
    end if
-   
+
    # Check to see if we need to regenerate the builder dictionary
    local tModuleList
    put revDocsGetBuiltinModuleList(revEnvironmentBinariesPath() & slash & "modules" & slash & "lci", tRepoPath) into tModuleList
-   
+
    set the itemdelimiter to slash
    put empty into tInputs
    put revIDESpecialFolderPath("api", "livecode_builder") & slash & "builder.js" into tOutput
@@ -11099,9 +11099,9 @@ private command revIDEGenerateDistributedAPI
       put tLine into tInputs[tCount]
       add 1 to tCount
    end repeat
-   
+
    put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
-   
+
    # Regenerate dictionary if necessary
    if tNeedUpdate then
       local tModularA, tModularCount, tBlocksA, tParsedA
@@ -11118,7 +11118,7 @@ private command revIDEGenerateDistributedAPI
             add 1 to tModularCount
          end if
       end repeat
-      
+
       local tBuilderA
       put 1 into tModularCount
       repeat for each element tElement in tModularA
@@ -11133,15 +11133,15 @@ private command revIDEGenerateDistributedAPI
       put revDocsModifyForUrl(tBuilderA["display name"]) into tBuilderA["name"]
       put "LiveCode" into tBuilderA["author"]
       put "dictionary" into tBuilderA["type"]
-      
+
       # Update the database
       ideDocsUpdateDatabase "livecode_builder", tBuilderA, true
-      
+
       put revDocsFormatLibraryDocArrayAsJSON(tBuilderA) into tJSON
       revIDESetUTF8FileContents revIDESpecialFolderPath("api", "livecode_builder") & slash & "builder.js", \
             tJSON
    end if
-   
+
    # Check to see if we need to regenerate the datagrid docs
    put empty into tInputs
    put revIDESpecialFolderPath("api", "livecode_script") & slash & "dg.js" into tOutput
@@ -11150,7 +11150,7 @@ private command revIDEGenerateDistributedAPI
    put revIDESpecialFolderPath("Documentation") &"/dictionary" into tFolder
    put tFolder & slash & "datagrid.lcdoc" into tInputs[1]
    put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
-   # Regenerate if necessary   
+   # Regenerate if necessary
    if tNeedUpdate then
       local tLibA
       put revDocsParseDocFileToLibraryArray(tFolder & slash & "datagrid.lcdoc", "DataGrid", "LiveCode") into tLibA
@@ -11161,18 +11161,18 @@ private command revIDEGenerateDistributedAPI
       revIDESetUTF8FileContents revIDESpecialFolderPath("api", "livecode_script") & slash & "dg.js", \
             tJSON
    end if
-   
+
    local tIDELibsFolder, tIdeSupportFolder
    put tRepoPath & "/ide-support" into tIdeSupportFolder
    put tRepoPath & "/ide/Toolset/libraries" into tIDELibsFolder
-   
+
    # Check to see if we need to regenerate the ide dictionary
    put empty into tInputs
    put the effective filename of stack "revDocsParser" into tInputs[0]
    put tIdeSupportFolder into tInputs[1]
    put tIDELibsFolder into tInputs[2]
    put revIDESpecialFolderPath("api", "livecode_ide") & slash & "ide.js" into tOutput
-   
+
    put revIDEIsFilesetStale(tInputs, tOutput, true, tError) into tNeedUpdate
    # Regenerate dictionary if necessary
    if tNeedUpdate then
@@ -11187,7 +11187,7 @@ private command revIDEGenerateDistributedAPI
             put the password of tStack into tPassword
          end try
          if tStack is not empty and tPassword is empty then
-            put revDocsGenerateDocsFileFromText(the script of tStack, \ 
+            put revDocsGenerateDocsFileFromText(the script of tStack, \
                tStack) into tDoc
          end if
          if tDoc is not empty then
@@ -11195,7 +11195,7 @@ private command revIDEGenerateDistributedAPI
             add 1 to tIDECount
          end if
       end repeat
-      
+
       local tIDELibraryA
       put 1 into tIDECount
       repeat for each element tElement in tIDEA
@@ -11210,22 +11210,22 @@ private command revIDEGenerateDistributedAPI
       put revDocsModifyForUrl(tIDELibraryA["display name"]) into tIDELibraryA["name"]
       put "LiveCode" into tIDELibraryA["author"]
       put "dictionary" into tIDELibraryA["type"]
-      
+
       # Update the database
       ideDocsUpdateDatabase "livecode_ide", tIDELibraryA, true
-      
+
       put revDocsFormatLibraryDocArrayAsJSON(tIDELibraryA) into tJSON
       revIDESetUTF8FileContents revIDESpecialFolderPath("api", "livecode_ide") & slash & "ide.js", \
             tJSON
    end if
-   
+
    local tExtractedDocsFolder
    put revEnvironmentBinariesPath() & slash & "extracted_docs" into tExtractedDocsFolder
-   
+
    local tFiles
    put files(tExtractedDocsFolder) into tFiles
    filter tFiles with "*.lcdoc"
-   
+
    set the itemDelimiter to "."
    local tFile
    repeat for each line tFile in tFiles
@@ -11271,24 +11271,24 @@ end revIDEGetDictionaryHTMLTemplate
 on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pInitialEntryType
    local tGeneratedHTMLFile
    put revIDEGetDictionaryUrl(pWhich) into tGeneratedHTMLFile
-   
+
    local tLibraryName, tEntryName, tEntryType
    put pInitialLibrary into tLibraryName
    put pInitialEntryName into tEntryName
    put pInitialEntryType into tEntryType
-   
+
    local tDocsBase
    put revIDESpecialFolderPath("documentation") & slash & "html_viewer" into tDocsBase
-   
+
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
    put tDocsBase & slash & "css" into tDocsCSSFolder
    put tDocsBase & slash & "js" into tDocsJSFolder
    put revIDESpecialFolderPath("documentation cache") & slash & "built_" & pWhich & ".js" into tDataPath
-   
+
    local tIDEGuidesFolder, tRepoGuidesFolder
    put revIDESpecialFolderPath("ide guides") into tIDEGuidesFolder
    put revIDESpecialFolderPath("repo guides") into tRepoGuidesFolder
-   
+
    local tTemplate
    put revIDEUTF8FileContents(revIDEGetDictionaryHTMLTemplate(pWhich)) into tTemplate
    put merge(tTemplate) into tTemplate
@@ -11305,7 +11305,7 @@ local sNamesToColorsA, sColorsToNamesA
 
 private on __fetchNamesToColors
    local tColorRGB
-   
+
    repeat for each line tColorName in the colorNames
    	  set the colorOverlay["color"] of the templateGraphic to tColorName
    	  put the colorOverlay["color"] of the templateGraphic into tColorRGB
@@ -11323,7 +11323,7 @@ function revIDENamedColorToRGB pName
    if sNamesToColorsA is empty then
       __fetchNamesToColors
    end if
-   
+
    return sNamesToColorsA[pName]
 end revIDENamedColorToRGB
 
@@ -11331,7 +11331,7 @@ function revIDERGBToNamedColor pColor
    if sColorsToNamesA is empty then
       __fetchColorsToNames
    end if
-   
+
    return sColorsToNamesA[pColor]
 end revIDERGBToNamedColor
 
@@ -11378,11 +11378,11 @@ private function __publicScriptHandlers pObject
          exit repeat
    end try
    end repeat
-   
+
    if tScript is empty then
       return empty
    end if
-   
+
    repeat for each line tLine in tScript
       if token 1 of tLine is among the items of "on,command" then
          put "M" && token 2 of tLine & return after tHandlers
@@ -11398,7 +11398,7 @@ private command __TryToAutocompleteScript pObject, pScript, @rNewScript
    if pObject is empty then
       return empty
    end if
-   
+
    local tHandlerList
    if the environment is "development" then
       put the effective revAvailableHandlers of pObject into tHandlerList
@@ -11409,7 +11409,7 @@ private command __TryToAutocompleteScript pObject, pScript, @rNewScript
    -- revAvailableHandlers returns a list of handlers in the form
    -- <handlerType>  <handlerName> <startLine> <endLine>
    -- Check to see if any handler in the message path matches the executed script
-   
+
    local tTargetHandler, tIsPutOrGet
    put token 1 of pScript into tTargetHandler
    put false into tIsPutOrGet
@@ -11421,7 +11421,7 @@ private command __TryToAutocompleteScript pObject, pScript, @rNewScript
          put token 2 of pScript into tTargetHandler
       end if
    end if
-   
+
    local tDoScript, tFound
    put false into tFound
    put pScript into tDoScript
@@ -11432,7 +11432,7 @@ private command __TryToAutocompleteScript pObject, pScript, @rNewScript
       if tHandlerName is not tTargetHandler then
          next repeat
       end if
-      
+
       local tParams
       if not tIsPutOrGet and tHandlerType is "M" then
          -- If this is a command that matches, just send the message
@@ -11459,25 +11459,25 @@ end __TryToAutocompleteScript
 command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
    local tDefaultStack
    put the defaultStack into tDefaultStack
-   
+
    if pScript is empty then exit ideExecuteScript
-   
+
    if pObject is empty then
       put the long id of this card of the defaultStack into pObject
-   else 
+   else
       set the defaultStack to the short name of ideStackOfObject(pObject)
    end if
-   
+
    -- Need to target 'this card' if a stack is selected
    if word 1 of pObject is "stack" then
       put the long id of this card of pObject into pObject
    end if
-   
+
    -- check if word 1 of pScript is a handler in the intelligence object's script or the default stack's script
    local tScript, tValidScript, tCompileError, tOriginalCompileError
    ideCompileCheck pScript
    put the result into tOriginalCompileError
-   
+
    __TryToAutocompleteScript pObject, pScript, tScript
    -- If we found a handler already, just execute the script
    if the result is true then
@@ -11487,9 +11487,9 @@ command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
          put tScript into tValidScript
       end if
    end if
-   
+
    # Try executing as a command
-   if tValidScript is empty and \ 
+   if tValidScript is empty and \
          word 1 of tScript is among the lines of the commandNames then
       ideCompileCheck tScript
       put the result into tCompileError
@@ -11497,31 +11497,31 @@ command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
          put tScript into tValidScript
       end if
    end if
-   
+
    --deals with the put command, if the put command cannot be executed as is then:
    --the message box will attempt to auto complete the typing of a name of an object property and the contents of that property into the results area
    --where the intelligence object has been set in the preferences (currently selected object or the object directly underneath the mouse) ;s
    lock screen
-   
+
    if tValidScript is empty and not (token 1 of tScript is "get") then
       # Try executing as a function or property
       local tTryProperty
-      
+
       # Build the string so that it starts with "put the"
       if not (token 1 of tScript is "the") then
-         put "the" && tScript into tTryProperty 
+         put "the" && tScript into tTryProperty
       else
          put tScript into tTryProperty
       end if
       if not (token 1 of tTryProperty is "put ") then
-         put "put " before tTryProperty 
+         put "put " before tTryProperty
       end if
-      
+
       set the wholeMatches to true
       local tIsProperty, tToken
       put word 3 of tTryProperty into tToken
       put tToken is among the lines of the propertyNames into tIsProperty
-      
+
       # Try as a function or global property
       if tIsProperty or tToken is among the lines of the functionNames then
          ideCompileCheck tTryProperty
@@ -11530,7 +11530,7 @@ command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
             put tTryProperty into tValidScript
          end if
       end if
-      
+
       # If it wasn't valid as an object property of the intelligence object
       # then try as an object property of the intelligence object
       if tValidScript is empty and tIsProperty and pObject is not empty then
@@ -11548,13 +11548,13 @@ command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
             end if
          end if
       end if
-      
+
       ## If not a function, global property or object property then
       ## try as a boolean expression
-      if tValidScript is empty then     
+      if tValidScript is empty then
       local tBooleanExpression
       # Build the string so that it starts with "put"
-         put "put" && tScript into tBooleanExpression 
+         put "put" && tScript into tBooleanExpression
          ideCompileCheck tBooleanExpression
          put the result into tCompileError
          if tCompileError is empty then
@@ -11562,7 +11562,7 @@ command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
          end if
       end if
    end if
-   
+
    if tValidScript is empty then
       if tOriginalCompileError is not empty then
          return tOriginalCompileError for error
@@ -11571,7 +11571,7 @@ command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
       end if
    end if
    unlock screen
-   
+
    local tResult
    put tValidScript into rValidScript
    ideDoMessage tValidScript, pDebugMode, pObject
@@ -11580,7 +11580,7 @@ command ideExecuteScript pScript, pObject, pDebugMode, @rValidScript
    return tResult for value
 end ideExecuteScript
 
-/** 
+/**
 Attempts to compile the target script
 
 The result: If the compilation fails, the result is set to the description of the compile error
@@ -11621,12 +11621,12 @@ private command __removeMessageBoxFromDebugContexts @xContexts
          put the long id of tObject into tObject
       end if
       -- Message box execution always begins with 'returnInField' from the target
-      if item 3 of tLine is "returnInField" and \ 
+      if item 3 of tLine is "returnInField" and \
             tObject is tTarget then
          put tCount into tLast
       end if
    end repeat
-   
+
    delete line tFirst to tLast of xContexts
 end __removeMessageBoxFromDebugContexts
 
@@ -11645,7 +11645,7 @@ command ideDoMessage pScript, pDebugMode, pObject
    put ideDeclaredGlobalVariables() into tGlobals
    replace return with comma in tGlobals
    put "global" && tGlobals & return before pScript
-   
+
    try
       if pDebugMode then
          local tContext, tScriptEditor
@@ -11669,7 +11669,7 @@ command ideDoMessage pScript, pDebugMode, pObject
          put the result into tResult
          put line 2 to -1 of tResult into tScriptError
          put line 1 of tResult into tResult
-         
+
       else
          if pObject is empty then
             put the long id of this card of this stack into pObject
@@ -11678,7 +11678,7 @@ command ideDoMessage pScript, pDebugMode, pObject
       end if
    catch tScriptError
    end try
-   
+
    return tScriptError
 end ideDoMessage
 
@@ -11701,18 +11701,18 @@ function revIDEObjectSelectionMenu pTargetObjects, pTypeFilter
    local tNumControls, tNumCards
    local tCheck, tControlsArray
    local tList,tControlsList
-   
+
    if pTargetObjects is not empty then
       put ideStackOfObject(line 1 of pTargetObjects) into tStack
    else
       put the long id of the topStack into tStack
    end if
    put the defaultStack into tDefaultStack
-   
-   # Generate the inspect 
+
+   # Generate the inspect
    set the defaultStack to tStack
    put the num of controls into tNumControls
-   if tNumControls > 1000 then 
+   if tNumControls > 1000 then
       put tab & "(Too many controls to display" && "[" & tNumControls & "]" after tControls
    else
       repeat with i = 1 to tNumControls
@@ -11722,7 +11722,7 @@ function revIDEObjectSelectionMenu pTargetObjects, pTypeFilter
          if not shouldShow(tType, pTypeFilter) then
             next repeat
          end if
-         if tLongID is among the lines of pTargetObjects 
+         if tLongID is among the lines of pTargetObjects
          then put "!c" into tCheck
          else put "!n" into tCheck
          put tCheck & tab & menuitemEscape(the name of control i, false) && "[" & i & "]" & "/|" & tLongID & cr after tControls
@@ -11742,7 +11742,7 @@ function revIDEObjectSelectionMenu pTargetObjects, pTypeFilter
          end repeat
       end if
    end if
-   
+
    if shouldShow("card", pTypeFilter) then
       put empty into tCards
       put the num of cards in this stack into tNumCards
@@ -11755,11 +11755,11 @@ function revIDEObjectSelectionMenu pTargetObjects, pTypeFilter
       end repeat
       delete last char of tCards
       sort lines of tCards by item 2 of each
-      
+
       put tab & "Card" & cr before tCards
    end if
    set the defaultStack to tDefaultStack
-   
+
    if shouldShow("stack", pTypeFilter) then
       local tMainstack
       repeat for each line tMainStack in the mainstacks
@@ -11773,9 +11773,9 @@ function revIDEObjectSelectionMenu pTargetObjects, pTypeFilter
             put return & tSubstacks after tStackList
          end if
       end repeat
-      
+
       global gRevShowStacks
-      if not gREVShowStacks then 
+      if not gREVShowStacks then
          put revFilterStacksList(tStackList) into tStackList
       end if
       put empty into tStacks
@@ -11791,24 +11791,24 @@ function revIDEObjectSelectionMenu pTargetObjects, pTypeFilter
       if tStacks is empty then put "(" & tab & "Stack" into tStacks
       else put tab & "Stack" & cr before tStacks
    end if
-   
+
    local tMenu
-   if the number of lines in tControls > 20 then 
+   if the number of lines in tControls > 20 then
       replace cr with cr & tab & tab in tCards
       replace cr with cr & tab & tab in tStacks
       put tControlsList into tMenu
    else if tControls is not empty then
-      put tControls & cr into tMenu  
+      put tControls & cr into tMenu
    end if
-   
+
    if tCards is not empty then
       put tab & "-" & cr & tCards & cr after tMenu
    end if
-   
+
    if tStacks is not empty then
       put tab & "-" & cr & tStacks & cr after tMenu
    end if
-   
+
    delete the last char of tMenu
    return tMenu
 end revIDEObjectSelectionMenu
@@ -11865,14 +11865,14 @@ If  the object is on a password protected stack "pwd" is returned
 function revIDEObjectScriptLines pObject
    local tScriptLines
    try
-      put the number of lines in the script of pObject into tScriptLines      
+      put the number of lines in the script of pObject into tScriptLines
    catch pError
       put "pwd" into tScriptLines
    end try
    return tScriptLines
 end revIDEObjectScriptLines
 
-/* 
+/*
 Returns true if the object is currently open, i.e. determines
 - if the object is a stack, whether the mode is not 0
 - if the object is a card, whether it is the current card of an open stack
@@ -11881,40 +11881,40 @@ Returns true if the object is currently open, i.e. determines
 function revIDEObjectIsOpen pLongID
    local tStack
    put revIDEStackOfObject(pLongID) into tStack
-   
+
    if the mode of tStack is 0 then
       return false
    end if
-   
+
    if word 1 of pLongID is "stack" then
       return true
    end if
-   
+
    local tCard
    put revIDECardOfObject(pLongID) into tCard
-   
+
    if tCard is not the long id of this card of tStack then
       return false
    end if
-   
+
    if word 1 of pLongID is "card" then
       return true
    end if
-   
+
    return exists(pLongID)
 end revIDEObjectIsOpen
 
 constant kExtensionErrorCode = 863
 constant kExternalHandlerErrorCode = 634
 /**
-Returns the error description associated with the given 
+Returns the error description associated with the given
 error code.
 
 pType : either "compilation", "execution" or "warning"
 pCode : the id of the error as returned by the engine.
-Returns : The description of the specified error. 
+Returns : The description of the specified error.
 
->*Note:* if <pType> is "warning", this function will currently return 
+>*Note:* if <pType> is "warning", this function will currently return
 empty.
 */
 function revIDELookupError pType, pError
@@ -11932,7 +11932,7 @@ function revIDELookupError pType, pError
       else if tCode is kExternalHandlerErrorCode then
          return "External handler execution error:" && item 4 to -1 of line 1 of pError
       end if
-      
+
       if tCode is an integer then
          get line tCode of the scriptExecutionErrors
          if it is not empty then
@@ -11999,7 +11999,7 @@ function revIDEIsFilesetStale pInputs, pOutputs, pRecursive, @rError
       if pRecursive is empty then
          put false into pRecursive
       end if
-   
+
       -- Make sure both filesets are non-empty arrays
       local tInputs, tOutputs
       put __CheckFileset(pInputs) into tInputs
@@ -12007,24 +12007,24 @@ function revIDEIsFilesetStale pInputs, pOutputs, pRecursive, @rError
       if (tInputs is false) or (tOutputs is false) then
          return false -- consider everything to be up-to-date
       end if
-   
+
       -- Gather dates from each fileset
       local tInputTimes, tOutputTimes
       put __ScanFilesetMTimes(tOutputs, pRecursive, true) into tOutputTimes
       if (tOutputTimes is false) then
          return true -- an output file is missing, so update is required
       end if
-   
+
       put __ScanFilesetMTimes(tInputs, pRecursive, false) into tInputTimes
-   
+
       if (tInputTimes is not an array or tOutputTimes is not an array) then
          throw "This should never happen"
       end if
-      
+
       if tOutputTimes["min"] is empty then
          return false
       end if
-      
+
       return tInputTimes["max"] > tOutputTimes["min"]
    catch tError
       put tError into rError
@@ -12078,26 +12078,26 @@ private function __ScanFilesetMTimes pFileset, pRecursive, pAllowMissing
          return false
       end if
    end repeat
-   
+
    return tResult
 end __ScanFilesetMTimes
 
 private function __ScanFileMTime pFilename, pRecursive, pAllowMissing, \
       @xMin, @xMax
-   
+
    local tDirname, tBasename
-   
+
    set the itemdelimiter to slash
    put item 1 to -2 of pFilename into tDirname
    put item -1 of pFilename into tBasename
    if tDirname is empty then
       put "." into tDirname
    end if
-   
+
    if tBasename is empty then
       throw "Failed to check modification time: invalid filename" && pFilename
    end if
-   
+
    -- Regular file
    local tMTime
    if there is a file pFilename then
@@ -12113,31 +12113,31 @@ private function __ScanFileMTime pFilename, pRecursive, pAllowMissing, \
       end if
       return true
    end if
-   
+
    -- Directory
    local tContents, tInnerFilename
    if there is a folder pFilename then
       if pRecursive then
-         
+
          -- List directory contents
          revIDEPushDefaultFolder pFilename
          if the result is not empty then
             throw "Failed to set default folder" && pFilename
          end if
-         
+
          put files() & return & folders() into tContents
          filter tContents without ".."
          filter tContents without empty
-         
+
          revIDEPopDefaultFolder pFilename
          if the result is not empty then
             throw "Failed to set default folder" && pFilename
          end if
-         
+
          if tContents is empty then
             return true
          end if
-         
+
          -- Recursively scan files & folders
          repeat for each line tInnerFilename in tContents
             put pFilename & slash before tInnerFilename
@@ -12145,13 +12145,13 @@ private function __ScanFileMTime pFilename, pRecursive, pAllowMissing, \
                return false
             end if
          end repeat
-         
+
          return true
       else
          throw "Failed to check modification time: unexpected folder" && pFilename
       end if
    end if
-   
+
    -- Missing
    if pAllowMissing then
       return false
@@ -12171,10 +12171,10 @@ end __removeByteOrderMark
 function revIDEUTF8FileContents pFile
    local tContents
    put url("binfile:" & pFile) into tContents
-   
+
    -- Remove byte-order mark if there is one
    __removeByteOrderMark tContents
-   
+
    return textDecode(tContents, "utf-8")
 end revIDEUTF8FileContents
 
@@ -12201,49 +12201,49 @@ Returns: True if the objects can be selected
 function revIDEObjectsAreSelectable pObjects
    local tOwner, tObject
    split pObjects by return
-   
+
    if there is a pObjects[1] then
       put the long owner of pObjects[1] into tOwner
    else
       return false
    end if
-   
+
    if word 1 of tOwner is among the words of "group bkgnd background" then
       if not the selectGroupedControls or not the selectGroupedControls of tOwner then
          return false
       end if
    end if
-   
+
    repeat for each element tObject in pObjects
-      
+
       if there is not a tObject then
          return false
       end if
-      
+
       local tStack
       put revIDEStackOfObject(tObject) into tStack
       if the mode of tStack is not 1 then
          return false
       end if
-      
+
       if the long owner of tObject is not tOwner then
          return false
       end if
-      
+
       if word 1 of tObject is not among the words of "card stack" then
          if revIDECardOfObject(tObject) is not the long id of this card of tStack then
             return false
          end if
       end if
    end repeat
-   
+
    return true
 end revIDEObjectsAreSelectable
 
 on revIDEFindMoreWidgets
    lock screen
    revIDEOpenPalette "extension manager"
-   send "showExtensionStore" to \ 
+   send "showExtensionStore" to \
          stack revIDEPaletteToStackName("extension manager")
    unlock screen
 end revIDEFindMoreWidgets
@@ -12292,24 +12292,24 @@ Update the window bounding rect for the current IDE palette layout
 command ideSetWindowBoundingRect
    local tMenuBar
    put revIDEPaletteToStackName("menubar") into tMenuBar
-   
+
    local tTools
    put revIDEPaletteToStackName("tools") into tTools
-   
+
    local tToolsSlop
    put the width of stack tTools + 50 into tToolsSlop
-   
+
    local tWindowRect
    put revIDEStackScreenRect(tMenuBar, true) into tWindowRect
    if tWindowRect is not empty then
       if the screen of stack tTools is the screen of stack tMenubar then
-         if the right of stack tTools < (item 1 of tWindowRect + tToolsSlop) then 
+         if the right of stack tTools < (item 1 of tWindowRect + tToolsSlop) then
             put the right of stack tTools + 5 into item 1 of tWindowRect
          else if the left of stack tTools > (item 3 of tWindowRect - tToolsSlop) then
             put the left of stack tTools - 5 into item 3 of tWindowRect
          end if
       end if
-      
+
       -- revMenubar may not be visible on macOS with text and icons off
       if the visible of stack tMenubar then
          put the bottom of stack tMenuBar + 5 into item 2 of tWindowRect
